@@ -1,0 +1,16 @@
+# 忽略 Code::Blocks 編譯產生的資料夾
+bin/
+obj/
+
+# 忽略執行檔
+*.exe
+*.dll
+*.out
+
+# 忽略 Code::Blocks 的個人設定檔 (layout)
+*.layout
+*.depend
+
+# 忽略系統產生的垃圾檔
+.DS_Store
+Thumbs.db
