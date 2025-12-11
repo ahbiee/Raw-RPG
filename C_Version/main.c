@@ -40,7 +40,7 @@ typedef struct{
 void execute_attack(Entity* entity1, Entity* entity2){
     if(!entity1->is_alive || !entity2->is_alive) return; // if one of the entity is not alive anymore, don't do anything
 
-    printf("%s §ðÀ»¤F %s!\n", entity1->name, entity2->name);
+    printf("%s ï¿½ï¿½ï¿½ï¿½ï¿½F %s!\n", entity1->name, entity2->name);
 
     int dmg = entity1->atk;
     /* TODO: before calling attack function and calculations, we need to ask player to defend or attack, and add randomized choice for enemies too
@@ -113,8 +113,8 @@ int main()
     int total_count = enemy_count + 1; // entity[0] is player
     Backpack backpack; // player's backpack
 
-    printf("³o¬OCLI RPG¦^¦X¨î¹ï¾Ô¹CÀ¸¡I\n");
-    printf("½Ð¿é¤J§Aªº¨¤¦â¦WºÙ¡G");
+    printf("ï¿½oï¿½OCLI RPGï¿½^ï¿½Xï¿½ï¿½ï¿½Ô¹Cï¿½ï¿½ï¿½I\n");
+    printf("ï¿½Ð¿ï¿½Jï¿½Aï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Wï¿½Ù¡G");
     fgets(entity[0].name, sizeof(entity[0].name), stdin);
     entity[0].name[strcspn(entity[0].name, "\n")] = 0;
     entity[0].id = 0;

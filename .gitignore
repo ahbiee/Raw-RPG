@@ -10,6 +10,10 @@ obj/
 # 忽略 Code::Blocks 的個人設定檔 (layout)
 *.layout
 *.depend
+*.cbp
+
+# 忽略 VS code 的個人設定檔
+.vscode/
 
 # 忽略系統產生的垃圾檔
 .DS_Store
