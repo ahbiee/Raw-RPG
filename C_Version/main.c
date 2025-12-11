@@ -3,7 +3,7 @@
 #include <time.h>
 #include <string.h>
 
-#define MAX_ENTITIES 5
+#define MAX_ENTITIES 10
 
 typedef struct{
     /*
@@ -14,6 +14,8 @@ typedef struct{
         max_hp: entity's max hp
         atk: entity's attack damage
         speed: use to differentiate the attack sequence
+        dodge_rate: entities have chance to dodge attack
+        crit_rate: entities have chance to crit
         is_alive: 0: dead, 1: alive
     */
     int id;
@@ -22,8 +24,19 @@ typedef struct{
     int max_hp;
     int atk;
     int speed;
+    int dodge_rate;
+    int crit_rate;
     int is_alive;
 } Entity; // Entity是實體，直接包含玩家(player)與敵人(enemy)
+
+typedef struct{
+    char name[30];
+    int hp;
+    int atk;
+    int speed;
+    int dodge_rate;
+    int crit_rate;
+} EnemyTemplate;
 
 typedef struct{
     /*
@@ -40,7 +53,18 @@ typedef struct{
     // TODO: add more usages for gold
 } Backpack; // player's backpack
 
+const EnemyTemplate enemy_db[] = {
+    {""    , -1, -1, -1, -1, -1}, // type 0 是 placeholder, 不應該存取到這
+    {"Slime"   , 20, 3, 4, 0, 0}, // type 1 是 Slime
+    {"Skeleton", 15, 8, 7, 5, 5}, // type 2 是 Skeleton
+    {"Zombie"  , 40, 5, 2, 1, 1}, // type 3 是 Zombie
+    {"Goblin"  , 30, 6, 6, 3, 3}, // type 4 是 Goblin
+    {"Ghost", 5, 15, 10, 30, 10}  // type 5 是 Ghost
+};
+
 // --------------------------------------------------------------------------------------------------------------------------- //
+
+void setupEnemy(int i); // 設定敵人屬性
 
 void execute_attack(Entity* entity1, Entity* entity2); // 處理攻擊時的過程
 
@@ -65,29 +89,67 @@ ENEMY:
 4. check entity status
 */
 
+// 最多 玩家 + 5個敵人 = 6個實體，我開[10]的陣列確保不會出問題
+Entity entity[MAX_ENTITIES]; 
+
+// player's backpack
+Backpack backpack; 
+
 int main()
 {
     srand((unsigned)time(NULL)); // 用當前時間初始化隨機數(確保一定程度的偽隨機)
 
-    Entity entity[MAX_ENTITIES]; // 最多 玩家 + 3個敵人 = 4個實體，我開[5]的陣列確保不會出問題
-    int enemy_count = rand()%3 + 1; // randomly encounter 1~3 enemies, the player will fight them one by one
+    int enemy_count = rand()%3 + 3; // randomly encounter 3~5 enemies, the player will fight them one by one
     int total_count = enemy_count + 1; // entity[0] is player
-    Backpack backpack; // player's backpack
 
-    printf("Welcome to RPG game\n");
-    printf("Enter your name:");
+    printf("==========================================\n");
+    printf("Welcome to RPG Game\n");
+    printf("Enter your name (accept spaces): ");
     fgets(entity[0].name, sizeof(entity[0].name), stdin);
-    entity[0].name[strcspn(entity[0].name, "\n")] = 0;
-    entity[0].id = 0;
-    entity[0].atk = -1; // set later
-    entity[0].max_hp = -1; // set later
-    entity[0].hp = entity[0].max_hp;
-    entity[0].speed = -1; // set later
-    entity[0].is_alive = -1; // set later
+    for(int idx=0; idx<30; ++idx) if(entity[0].name[idx] == '\n') entity[0].name[idx] = '\0'; // replace '\n' with '\0'
 
+    printf("Welcome, %s\n", entity[0].name); // for test purpose
+
+    entity[0].id = 0;
+    entity[0].hp = entity[0].max_hp = 100;
+    entity[0].atk = 20;
+    entity[0].speed = 5;
+    entity[0].dodge_rate = 10;
+    entity[0].crit_rate = 5;
+    entity[0].is_alive = 1;
+    
+    printf("==========================================\n");
+    printf("Enemy list (3~5) for this round :\n");
+    for(int i=1; i<=enemy_count; ++i){
+        setupEnemy(i);
+    }
+    printf("==========================================\n");
     return 0;
 }
 
+// 設定敵人屬性
+void setupEnemy(int i){
+    int type = rand()%5 + 1; // type依照 敵人清單.txt，敵人強度依照清單的順序
+    
+    // status from template
+    strncpy(entity[i].name, enemy_db[type].name, 29);
+    entity[i].name[29] = '\0';
+
+    entity[i].max_hp = enemy_db[type].hp;
+    entity[i].atk = enemy_db[type].atk;
+    entity[i].speed = enemy_db[type].speed;
+    entity[i].dodge_rate = enemy_db[type].dodge_rate;
+    entity[i].crit_rate = enemy_db[type].crit_rate;
+
+    // status for common
+    entity[i].id = i;
+    entity[i].hp = entity[i].max_hp;
+    entity[i].is_alive = 1;
+
+    printf("ID: %d, Type: %-10s (HP: %d, ATK: %d, SPD: %d)\n", i, entity[i].name, entity[i].hp, entity[i].atk, entity[i].speed);
+}
+
+// 處理攻擊時的過程
 void execute_attack(Entity* entity1, Entity* entity2){
     if(!entity1->is_alive || !entity2->is_alive) return; // if one of the entity is not alive anymore, don't do anything
 
@@ -128,6 +190,8 @@ the function call will be like:
             break;
     }
 */
+
+// 骰防禦比例
 int roll_defend(){
     // TODO: if percent == 100, we need to give entity some awards, for example healing or attack bonus
     int percent = rand() % 100;
