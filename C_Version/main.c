@@ -3,11 +3,11 @@
 #include <time.h>
 #include <string.h>
 
-#define MAX_ENTITIES 10
+#define MAX_ENTITIES 5
 
 typedef struct{
     /*
-        @Explanation
+        @Explanation 各資料解釋
         id: 0: player, 1~N: enemy
         name: entity's name
         hp: entity's current hp
@@ -23,19 +23,70 @@ typedef struct{
     int atk;
     int speed;
     int is_alive;
-} Entity;
+} Entity; // Entity是實體，直接包含玩家(player)與敵人(enemy)
 
 typedef struct{
     /*
         @Explanation
-        heal_potion: can heal a specific amount of hp
+        heal_potion: can heal a specific amount (or percentage, TBD) of hp
         gold: current gold, can be use to buy potions or maybe skip stage?
     */
-    int heal_potion;
-    // TODO: add different levels of potion
+    int heal_potion_lvl1;
+    int heal_potion_lvl2;
+    int heal_potion_lvl3;
+    // TODO: the higher the level is, the more health the player is healed
+    // maybe 25%, 50%, 100% of max health?
     int gold;
     // TODO: add more usages for gold
 } Backpack; // player's backpack
+
+// --------------------------------------------------------------------------------------------------------------------------- //
+
+void execute_attack(Entity* entity1, Entity* entity2); // 處理攻擊時的過程
+
+int roll_defend(); // 骰防禦比例
+
+/*
+every round
+
+1. we need to print
+==============CURRENT STATUS==============
+PLAYER:
+    HP: xxx/max    ATK: xxx     SPD:xxx
+
+ENEMY:
+    HP: xxx/max    ATK: xxx     SPD:xxx
+==========================================
+
+2. asking attack or defend or use item
+
+3. calculate corresponding choices
+
+4. check entity status
+*/
+
+int main()
+{
+    srand((unsigned)time(NULL)); // 用當前時間初始化隨機數(確保一定程度的偽隨機)
+
+    Entity entity[MAX_ENTITIES]; // 最多 玩家 + 3個敵人 = 4個實體，我開[5]的陣列確保不會出問題
+    int enemy_count = rand()%3 + 1; // randomly encounter 1~3 enemies, the player will fight them one by one
+    int total_count = enemy_count + 1; // entity[0] is player
+    Backpack backpack; // player's backpack
+
+    printf("Welcome to RPG game\n");
+    printf("Enter your name:");
+    fgets(entity[0].name, sizeof(entity[0].name), stdin);
+    entity[0].name[strcspn(entity[0].name, "\n")] = 0;
+    entity[0].id = 0;
+    entity[0].atk = -1; // set later
+    entity[0].max_hp = -1; // set later
+    entity[0].hp = entity[0].max_hp;
+    entity[0].speed = -1; // set later
+    entity[0].is_alive = -1; // set later
+
+    return 0;
+}
 
 void execute_attack(Entity* entity1, Entity* entity2){
     if(!entity1->is_alive || !entity2->is_alive) return; // if one of the entity is not alive anymore, don't do anything
@@ -63,66 +114,25 @@ the function call will be like:
     int def = defend();
     attack_damage = (attack_damage * def) / 100;
     switch(def){
-        case 0.0:
+        case 0:
             printf("perfect defend\n");
             break;
-        case 0.5:
+        case 50:
             printf("great defend\n");
             break;
-        case 0.2:
+        case 80:
             printf("nice defend\n");
             break;
-        case 0.0:
+        case 100:
             printf("defend unsuccessfully\n");
             break;
     }
 */
-int defend(){
-    // TODO: if percent == 100, we need to give entity some awards, for example healing
+int roll_defend(){
+    // TODO: if percent == 100, we need to give entity some awards, for example healing or attack bonus
     int percent = rand() % 100;
-    if(percent >= 50) return 0;
-    if(percent >= 25) return 50;
-    if(percent >= 10) return 80;
-    return 100;
-}
-
-/*
-every round
-
-1. we need to print
-===========CURRENT STATUS================
-PLAYER:
-    HP: xxx/max    ATK: xxx     SPD:xxx
-
-ENEMY:
-    HP: xxx/max    ATK: xxx     SPD:xxx
-=========================================
-
-2. asking attack or defend or use item
-
-3. calculate corresponding choices
-
-4. check entity status
-*/
-
-int main()
-{
-    srand((unsigned)time(NULL));
-    Entity entity[MAX_ENTITIES];
-    int enemy_count = rand()%3 + 1; // 1~3 enemies
-    int total_count = enemy_count + 1; // entity[0] is player
-    Backpack backpack; // player's backpack
-
-    printf("Welcome to RPG game\n");
-    printf("Enter your name:١G");
-    fgets(entity[0].name, sizeof(entity[0].name), stdin);
-    entity[0].name[strcspn(entity[0].name, "\n")] = 0;
-    entity[0].id = 0;
-    entity[0].atk = -1; // set later
-    entity[0].max_hp = -1; // set later
-    entity[0].hp = entity[0].max_hp;
-    entity[0].speed = -1; // set later
-    entity[0].is_alive = -1; // set later
-
-    return 0;
+    if(percent >= 50) return 0;  // 完美格檔 (受傷 0%)
+    if(percent >= 25) return 50; // 成功格檔 (受傷 50%)
+    if(percent >= 10) return 80; // 輕微格檔 (受傷 80%)
+    return 100; // 格檔失敗 (受傷 100%)
 }
