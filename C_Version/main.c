@@ -48,7 +48,7 @@ int main()
     int total_count = enemy_count + 1; // entity[0] is player
 
     printf("==========================================\n");
-    printf("Welcome to RPG Game\n");
+    printf("Welcome to Raw RPG\n");
     printf("Enter your name (accept spaces, limit 31 characters): ");
     if(fgets(entity[0].name, sizeof(entity[0].name), stdin) != NULL){
         size_t len = strlen(entity[0].name);
@@ -90,7 +90,7 @@ int main()
     backpack.items[3] = (Item){4, "Shield", 80, 1};
     backpack.items[4] = (Item){2, "Map", 5, 1};
     backpack.gold = 0;
-    
+
     printf("ID sequence before heap sort: ");
     for(int i=0; i<backpack.item_count; i++) printf("%d ", backpack.items[i].id);
     printf("\n");
