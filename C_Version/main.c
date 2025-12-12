@@ -74,11 +74,33 @@ int main()
     entity[0].is_alive = 1;
     
     printf("==========================================\n");
-    printf("Enemy list (3~5) for this round :\n");
+    printf("Enemy list (3~5) for this game :\n");
     for(int i=1; i<=enemy_count; ++i){
         setupEnemy(i);
     }
     printf("==========================================\n");
+
+    /*
+    以下code是為了測試player backpack與heap sort能夠正常使用，可以先不管
+    */
+    backpack.item_count = 5;
+    backpack.items[0] = (Item){5, "Potion", 10, 1};
+    backpack.items[1] = (Item){1, "Sword", 100, 1};
+    backpack.items[2] = (Item){3, "Key", 50, 1};
+    backpack.items[3] = (Item){4, "Shield", 80, 1};
+    backpack.items[4] = (Item){2, "Map", 5, 1};
+    backpack.gold = 0;
+    
+    printf("ID sequence before heap sort: ");
+    for(int i=0; i<backpack.item_count; i++) printf("%d ", backpack.items[i].id);
+    printf("\n");
+
+    sort_backpack(); // 執行排序
+
+    printf("ID sequence after heap sort: ");
+    for(int i=0; i<backpack.item_count; i++) printf("%d ", backpack.items[i].id);
+    printf("\n");
+
     return 0;
 }
 
@@ -154,4 +176,34 @@ int roll_defend(){
     if(percent >= 25) return 50; // 成功格檔 (受傷 50%)
     if(percent >= 10) return 80; // 輕微格檔 (受傷 80%)
     return 100; // 格檔失敗 (受傷 100%)
+}
+
+void sort_backpack(){
+    int n = backpack.item_count;
+    for(int i=n/2-1; i>=0; --i){
+        heapify_item(backpack.items, n, i);
+    }
+    for(int i=n-1; i>=0; --i){
+        swap_items(0, i);
+        heapify_item(backpack.items, i, 0);
+    }
+}
+
+void swap_items(int a, int b){
+    Item tmp = backpack.items[a];
+    backpack.items[a] = backpack.items[b];
+    backpack.items[b] = tmp;
+}
+
+// Max Heap, sort by id
+void heapify_item(Item arr[], int size, int i){
+    int l = i*2+1; // left child, right child = l+1
+    while(l < size){
+        int winner = (l+1 < size) && (arr[l+1].id > arr[l].id) ? l+1 : l;
+        winner = (arr[winner].id > arr[i].id) ? winner : i;
+        if(winner == i) break;
+        swap_items(i, winner);
+        i = winner;
+        l = i*2+1;
+    }
 }
