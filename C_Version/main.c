@@ -87,8 +87,8 @@ void setupEnemy(int i){
     int type = rand()%5 + 1; // type依照 敵人清單.txt，敵人強度依照清單的順序
     
     // status from template
-    strncpy(entity[i].name, enemy_db[type].name, 20);
-    entity[i].name[19] = '\0';
+    strncpy(entity[i].name, enemy_db[type].name, sizeof(entity[i].name) - 1); // 存到destination的容量-1
+    entity[i].name[sizeof(entity[i].name) - 1] = '\0'; // 讓destination的最後一個位元變成 '\0'，保證字串安全
 
     entity[i].max_hp = enemy_db[type].hp;
     entity[i].atk = enemy_db[type].atk;
