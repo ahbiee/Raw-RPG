@@ -7,6 +7,11 @@ obj/
 *.dll
 *.out
 
+# 忽略Mac/Linux的執行檔
+main
+a.out
+*.out
+
 # 忽略 Code::Blocks 的個人設定檔 (layout)
 *.layout
 *.depend

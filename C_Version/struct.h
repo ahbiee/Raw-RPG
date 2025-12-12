@@ -18,7 +18,7 @@ typedef struct{
         is_alive: 0: dead, 1: alive
     */
     int id;
-    char name[32];
+    char name[24];
     int hp;
     int max_hp;
     int atk;
@@ -26,6 +26,8 @@ typedef struct{
     int dodge_rate;
     int crit_rate;
     int is_alive;
+    int pos_x;
+    int pos_y;
 } Entity; // Entity是實體，直接包含玩家(player)與敵人(enemy)
 
 typedef struct{
