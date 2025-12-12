@@ -2,56 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
-
-#define MAX_ENTITIES 10
-
-typedef struct{
-    /*
-        @Explanation 各資料解釋
-        id: 0: player, 1~N: enemy
-        name: entity's name
-        hp: entity's current hp
-        max_hp: entity's max hp
-        atk: entity's attack damage
-        speed: use to differentiate the attack sequence
-        dodge_rate: entities have chance to dodge attack
-        crit_rate: entities have chance to crit
-        is_alive: 0: dead, 1: alive
-    */
-    int id;
-    char name[30];
-    int hp;
-    int max_hp;
-    int atk;
-    int speed;
-    int dodge_rate;
-    int crit_rate;
-    int is_alive;
-} Entity; // Entity是實體，直接包含玩家(player)與敵人(enemy)
-
-typedef struct{
-    char name[30];
-    int hp;
-    int atk;
-    int speed;
-    int dodge_rate;
-    int crit_rate;
-} EnemyTemplate;
-
-typedef struct{
-    /*
-        @Explanation
-        heal_potion: can heal a specific amount (or percentage, TBD) of hp
-        gold: current gold, can be use to buy potions or maybe skip stage?
-    */
-    int heal_potion_lvl1;
-    int heal_potion_lvl2;
-    int heal_potion_lvl3;
-    // TODO: the higher the level is, the more health the player is healed
-    // maybe 25%, 50%, 100% of max health?
-    int gold;
-    // TODO: add more usages for gold
-} Backpack; // player's backpack
+#include "struct.h"
 
 const EnemyTemplate enemy_db[] = {
     {""    , -1, -1, -1, -1, -1}, // type 0 是 placeholder, 不應該存取到這
@@ -62,13 +13,7 @@ const EnemyTemplate enemy_db[] = {
     {"Ghost", 5, 15, 10, 30, 10}  // type 5 是 Ghost
 };
 
-// --------------------------------------------------------------------------------------------------------------------------- //
-
-void setupEnemy(int i); // 設定敵人屬性
-
-void execute_attack(Entity* entity1, Entity* entity2); // 處理攻擊時的過程
-
-int roll_defend(); // 骰防禦比例
+// ---------------------------------------------------------------------------------------------------------------------------
 
 /*
 every round
@@ -89,7 +34,7 @@ ENEMY:
 4. check entity status
 */
 
-// 最多 玩家 + 5個敵人 = 6個實體，我開[10]的陣列確保不會出問題
+// 最多 玩家 + 5個敵人 = 6個實體，我開[8]的陣列確保不會出問題
 Entity entity[MAX_ENTITIES]; 
 
 // player's backpack
@@ -104,9 +49,19 @@ int main()
 
     printf("==========================================\n");
     printf("Welcome to RPG Game\n");
-    printf("Enter your name (accept spaces): ");
-    fgets(entity[0].name, sizeof(entity[0].name), stdin);
-    for(int idx=0; idx<30; ++idx) if(entity[0].name[idx] == '\n') entity[0].name[idx] = '\0'; // replace '\n' with '\0'
+    printf("Enter your name (accept spaces, limit 19 characters): ");
+    if(fgets(entity[0].name, sizeof(entity[0].name), stdin) != NULL){
+        size_t len = strlen(entity[0].name);
+        
+        // case A: user's input is correct, then we replace '\n' with '\0'
+        if(len > 0 && entity[0].name[len-1] == '\n') entity[0].name[len-1] = '\0';
+        // case B: user's input is more thant 19 characters, we need to clear the input buffer
+        else{
+            int c;
+            while((c = getchar()) != '\n' && c != EOF); // clear buffer
+            // we don't need to manually replace the last character to '\n', it's automaticly done by fgets
+        }
+    }
 
     printf("Welcome, %s\n", entity[0].name); // for test purpose
 
@@ -132,8 +87,8 @@ void setupEnemy(int i){
     int type = rand()%5 + 1; // type依照 敵人清單.txt，敵人強度依照清單的順序
     
     // status from template
-    strncpy(entity[i].name, enemy_db[type].name, 29);
-    entity[i].name[29] = '\0';
+    strncpy(entity[i].name, enemy_db[type].name, 20);
+    entity[i].name[19] = '\0';
 
     entity[i].max_hp = enemy_db[type].hp;
     entity[i].atk = enemy_db[type].atk;
