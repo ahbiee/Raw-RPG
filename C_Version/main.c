@@ -1,3 +1,16 @@
+/*
+
+Project Name: Raw RPG
+Purpose: 組合語言期末專題
+Code language: C
+
+Author:
+413262380 王柏硯
+413262457 白侑恆
+413262574 張博鈞
+
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
