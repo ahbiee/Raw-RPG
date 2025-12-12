@@ -15,10 +15,10 @@ typedef struct{
         speed: use to differentiate the attack sequence
         dodge_rate: entities have chance to dodge attack
         crit_rate: entities have chance to crit
-        is_alive: 0: dead, 1: alive
+        is_alive: 0->dead, 1->alive
     */
-    int id;
     char name[24];
+    int id;
     int hp;
     int max_hp;
     int atk;
@@ -31,26 +31,19 @@ typedef struct{
 } Entity; // Entity是實體，直接包含玩家(player)與敵人(enemy)
 
 typedef struct{
-    char name[32];
-    int hp;
-    int atk;
-    int speed;
-    int dodge_rate;
-    int crit_rate;
-} EnemyTemplate;
-
-typedef struct{
     /*
         @Explanation
         id: item id
         name: item name
         value: the cost of item
         count: how many items player have
+        can_be_used_in_map: 0->no, 1->yes
     */
     int id;
-    char name[20];
+    char name[16];
     int value;
     int count;
+    int can_be_used_in_map;
 } Item;
 
 typedef struct{

@@ -17,13 +17,14 @@ Author:
 #include <string.h>
 #include "struct.h"
 
-const EnemyTemplate enemy_db[] = {
-    {"", -1, -1, -1, -1, -1},     // type 0 是 placeholder, 不應該存取到這
-    {"Slime", 20, 3, 4, 0, 0},    // type 1 是 Slime
-    {"Skeleton", 15, 8, 7, 5, 5}, // type 2 是 Skeleton
-    {"Zombie", 40, 5, 2, 1, 1},   // type 3 是 Zombie
-    {"Goblin", 30, 6, 6, 3, 3},   // type 4 是 Goblin
-    {"Ghost", 5, 15, 10, 30, 10}  // type 5 是 Ghost
+const Entity enemy_db[] = {
+// name, id, hp, maxhp, atk, speed, dodge_rate, crit_rate, is_alive, pos_x, pos_y
+    {"", -1, -1, -1, -1, -1, -1, -1, -1, 1, -1, -1}, // type 0 是 placeholder, 不應該存取到這
+    {"Slime",    -1, 20, 20, 3, 4, 0, 0, 1, -1, -1}, // type 1 是 Slime
+    {"Skeleton", -1, 15, 15, 8, 7, 5, 5, 1, -1, -1}, // type 2 是 Skeleton
+    {"Zombie",   -1, 40, 40, 5, 2, 1, 1, 1, -1, -1}, // type 3 是 Zombie
+    {"Goblin",   -1, 30, 30, 6, 6, 3, 3, 1, -1, -1}, // type 4 是 Goblin
+    {"Ghost",  -1, 5, 5, 15, 10, 30, 10, 1, -1, -1}  // type 5 是 Ghost
 };
 
 // ---------------------------------------------------------------------------------------------------------------------------
@@ -62,7 +63,7 @@ int main()
 
     printf("==========================================\n");
     printf("Welcome to Raw RPG\n");
-    printf("Enter your name (accept spaces, limit 31 characters): ");
+    printf("Enter your name (accept spaces, limit 23 characters): ");
     if (fgets(entity[0].name, sizeof(entity[0].name), stdin) != NULL)
     {
         size_t len = strlen(entity[0].name);
@@ -102,11 +103,11 @@ int main()
     以下code是為了測試player backpack與heap sort能夠正常使用，可以先不管
     */
     backpack.item_count = 5;
-    backpack.items[0] = (Item){5, "Potion", 10, 1};
-    backpack.items[1] = (Item){1, "Sword", 100, 1};
-    backpack.items[2] = (Item){3, "Key", 50, 1};
-    backpack.items[3] = (Item){4, "Shield", 80, 1};
-    backpack.items[4] = (Item){2, "Map", 5, 1};
+    backpack.items[0] = (Item){5, "Potion", 10, 1, 1};
+    backpack.items[1] = (Item){1, "Sword", 100, 1, 0};
+    backpack.items[2] = (Item){3, "Key", 50, 1, 0};
+    backpack.items[3] = (Item){4, "Shield", 80, 1, 0};
+    backpack.items[4] = (Item){2, "Map", 5, 1, 1};
     backpack.gold = 0;
 
     printf("ID sequence before heap sort: ");
@@ -133,18 +134,21 @@ void setupEnemy(int i)
     strncpy(entity[i].name, enemy_db[type].name, sizeof(entity[i].name) - 1); // 存到destination的容量-1
     entity[i].name[sizeof(entity[i].name) - 1] = '\0';                        // 讓destination的最後一個位元變成 '\0'，保證字串安全
 
-    entity[i].max_hp = enemy_db[type].hp;
+    entity[i].hp = entity[i].max_hp = enemy_db[type].hp;
     entity[i].atk = enemy_db[type].atk;
     entity[i].speed = enemy_db[type].speed;
     entity[i].dodge_rate = enemy_db[type].dodge_rate;
     entity[i].crit_rate = enemy_db[type].crit_rate;
-
-    // status for common
     entity[i].id = i;
-    entity[i].hp = entity[i].max_hp;
     entity[i].is_alive = 1;
 
-    printf("ID: %d, Type: %-10s (HP: %d, ATK: %d, SPD: %d)\n", i, entity[i].name, entity[i].hp, entity[i].atk, entity[i].speed);
+    entity[i].pos_x = rand()%40; // 0~39
+    while(entity[i].pos_x == 0 || entity[i].pos_x == 39) entity[i].pos_x = rand()%40;
+    entity[i].pos_y = rand()%20; // 0~20
+    while(entity[i].pos_x == 0 || entity[i].pos_x == 19) entity[i].pos_y = rand()%20;
+
+    printf("ID: %d, Type: %-10s (HP: %d, ATK: %d, SPD: %d), Spawned in x:%d, y:%d\n",
+          i, entity[i].name, entity[i].hp, entity[i].atk, entity[i].speed, entity[i].pos_x, entity[i].pos_y);
 }
 
 // 處理攻擊時的過程
@@ -243,42 +247,45 @@ void heapify_item(Item arr[], int size, int i)
 }
 
 /*
-代辦：確保大家都8964、shop 物品種類設置
+未來考慮加入：武器系統、裝備系統
 
-考慮：武器系統
-
-背包：金幣、不同功能藥水、
+背包：包含金幣、背包系統(例如不同效果的potion、不同數值的武器)
 背包系統:總共16格，進入戰鬥選擇四個手持物品。
-裝備系統：
-終止條件：baby boss
+遊戲通關條件：Final Boss
 
-輸入名稱
-
-
-map set:地圖initialize 40*20（邊界另外設定）
+map set:地圖initialize 40*20(包含邊界)
         Boss固定出生右下角
         玩家生成左上角
-        黑皮商店生成(maybe random)
+        商店隨機生成
         系統random分配enemies' x,y;
-顯示:map
-顯示：action
-地圖模式：玩家選擇動作:移動：上下左右
-                    吃藥水：可以在地圖使用的物品->列出來->再選擇;
-黑皮商店模式：顯示四個物品
+TODO: 處理商店生成、討論地圖大小問題
 
-ㄉㄩ丟鬼模式：if(玩家位置==怪物位置）
-            進入戰鬥模式（）
-            {
-            while(除非有人死掉）
-            {每回合更新雙方condition
-                if(速度快的先攻擊、速度一樣Random選擇）
-                {
-                攻擊回合()顯示 action
-                防禦回合（）顯示action
+除了戰鬥外，每個行動後顯示地圖與可執行動作(移動:上下左右、使用道具:可以在地圖使用的物品->列出來->再選擇)
+TODO: 兩個map 一個char顯示地圖狀況(.空白 P玩家 $商店 B魔王...)
+              一個int處理地圖佔據狀況(兩個怪物、商店不能生在同一個位置)
 
-                }
-            }
+商店模式：顯示四個可購買物品
+TODO: shop_db物品種類要有哪些、地圖會有幾個商店、價格...
 
+戰鬥模式：
+if(玩家位置==怪物位置）進入戰鬥狀態：
+{
+    while(兩個Entity都還活著）
+    {
+        每回合更新雙方condition(例如hp)
+
+        玩家可以選擇要進行：攻擊、防禦、使用道具
+        敵人會攻擊、防禦 (依照狀態決定random範圍，這個之後再寫，會有點麻煩)
+
+        if(速度快的先行動、速度一樣就隨機）
+        {
+            處理速度快者的行動
+            處理速度慢者的行動
+
+            ** 如果快和慢的都選擇attack，且快的把慢的打死了，那慢的就不會行動(skip)
+        }
+    }
+}
 
 祝大家活著，我說作者
 */
