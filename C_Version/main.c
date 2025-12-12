@@ -49,7 +49,7 @@ int main()
 
     printf("==========================================\n");
     printf("Welcome to RPG Game\n");
-    printf("Enter your name (accept spaces, limit 19 characters): ");
+    printf("Enter your name (accept spaces, limit 31 characters): ");
     if(fgets(entity[0].name, sizeof(entity[0].name), stdin) != NULL){
         size_t len = strlen(entity[0].name);
         
