@@ -307,15 +307,15 @@ void initialize_map(){
     // 生成牆'#'
     for(int x = 0; x < MAP_WIDTH; x++){
         map[0][x] = '#';
-        map[MAP_HEIGHT][x] = '#';
+        map[MAP_HEIGHT-1][x] = '#';
     }
     for(int y = 0; y < MAP_HEIGHT; y++){
         map[y][0] = '#';
-        map[y][MAP_WIDTH] = '#';
+        map[y][MAP_WIDTH-1] = '#';
     }
 
     // 生成 boss(B) 、player(P)
-    map[MAP_HEIGHT-1][MAP_WIDTH-1] = 'P';
+    map[MAP_HEIGHT-2][MAP_WIDTH-2] = 'P';
     map[1][1] = 'B';
 
     // 生成敵人'?'...
