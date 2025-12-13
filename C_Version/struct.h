@@ -3,8 +3,9 @@
 
 #define MAX_ENTITIES 8
 #define MAX_ITEMS 16
-#define MAP_HEIGHT 20
+
 #define MAP_WIDTH 40
+#define MAP_HEIGHT 20
 
 typedef struct{
     /*

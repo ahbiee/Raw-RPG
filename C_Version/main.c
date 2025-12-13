@@ -44,9 +44,9 @@ const Item armor_db[] = {
 
 const Item posion_db[] = {
 //  id, name, cost, count, can_be_used_in_map
-    {0, "Hp_Posion",  10, 1, 1}, // 生命藥水: map模式可喝
-    {1, "Pw_Posion",  10, 1, 1}, // 力量藥水: map模式可喝
-    {2, "Hm_Posion",  15, 1, 0}, // 傷害藥水
+    {0, "Hp_Posion",  10, 1, 1}, // 生命(health point)藥水: map模式可喝
+    {1, "Pw_Posion",  10, 1, 1}, // 力量(power)藥水: map模式可喝
+    {2, "Hm_Posion",  15, 1, 0}, // 傷害(harm)藥水
 };
 
 // 彙整所有物品的指標陣列，方便隨機抽取 (可以考慮放在同一個陣列，只是先列出)
@@ -108,13 +108,12 @@ int main()
         else
         {
             int c;
-            while ((c = getchar()) != '\n' && c != EOF)
-                ; // clear buffer
+            while ((c = getchar()) != '\n' && c != EOF); // clear buffer
             // we don't need to manually replace the last character to '\n', it's automaticly done by fgets
         }
     }
 
-    printf("Welcome, %s\n", entity[0].name); // for test purpose
+    printf("Welcome, %s\n", entity[0].name);
 
     entity[0].id = 0;
     entity[0].hp = entity[0].max_hp = 100;
@@ -155,13 +154,24 @@ int main()
         printf("%d ", backpack.items[i].id);
     printf("\n");
 
+    /*
+    以下code是為了測試map能夠正常使用，可以先不管
+    */
+    initialize_map();
+    for(int i=0; i<MAP_HEIGHT; ++i){
+        for(int j=0; j<MAP_WIDTH; ++j){
+            printf("%c", map[i][j]);
+        }
+        puts("");
+    }
+
     return 0;
 }
 
 // 設定敵人屬性
 void setupEnemy(int i)
 {
-    int type = rand() % 5 + 1; // type依照 敵人清單.txt，敵人強度依照清單的順序
+    int type = rand() % 5 + 1; // type依照 敵人清單.txt
 
     // status from template
     strncpy(entity[i].name, enemy_db[type].name, sizeof(entity[i].name) - 1); // 存到destination的容量-1
@@ -296,12 +306,12 @@ void initialize_map(){
 
     // 生成牆'#'
     for(int x = 0; x < MAP_WIDTH; x++){
-            map[0][x] = '#';
-            map[MAP_HEIGHT][x] = '#';
+        map[0][x] = '#';
+        map[MAP_HEIGHT][x] = '#';
     }
     for(int y = 0; y < MAP_HEIGHT; y++){
-            map[y][0] = '#';
-            map[y][MAP_WIDTH] = '#';
+        map[y][0] = '#';
+        map[y][MAP_WIDTH] = '#';
     }
 
     // 生成 boss(B) 、player(P)
