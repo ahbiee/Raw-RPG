@@ -27,6 +27,36 @@ const Entity enemy_db[] = {
     {"Ghost",  -1, 5, 5, 15, 10, 30, 10, 1, -1, -1}  // type 5 是 Ghost
 };
 
+const Item weapon_db[] = {
+//  id, name, value, count, can_be_used_in_map
+    {0, "Sword",       5, 1, 0},
+    {1, "Axe",        10, 1, 0},
+    {2, "Bow",        15, 1, 0},
+};
+
+const Item armor_db[] = {
+//  id, name, value, count, can_be_used_in_map
+    {0, "Helmet",     13, 1, 1}, // 頭盔: map模式可穿上
+    {1, "Chestplace", 20, 1, 1}, // 胸甲: map模式可穿上
+    {2, "Leggings",   13, 1, 1}, // 護腿: map模式可穿上
+    {3, "Boost",       8, 1, 1}, // 靴子: map模式可穿上
+};
+
+const Item posion_db[] = {
+//  id, name, value, count, can_be_used_in_map
+    {0, "Hp_Posion",  10, 1, 1}, // 生命藥水: map模式可喝
+    {1, "Pw_Posion",  10, 1, 1}, // 力量藥水: map模式可喝
+    {2, "Hm_Posion",  15, 1, 0}, // 傷害藥水
+};
+
+// 彙整所有物品的指標陣列，方便隨機抽取 (可以考慮放在同一個陣列，只是先列出)
+const Item *item_random_arr[] = {
+    &weapon_db[0], &weapon_db[1], &weapon_db[2],
+    &armor_db[0], &armor_db[1], &armor_db[2], &armor_db[3],
+    &posion_db[0], &posion_db[1], &posion_db[2]
+};
+const int ITEM_RANDOM_COUNT = sizeof(item_random_arr) / sizeof(item_random_arr[0]);
+
 // ---------------------------------------------------------------------------------------------------------------------------
 
 /*
@@ -53,6 +83,9 @@ Entity entity[MAX_ENTITIES];
 
 // player's backpack
 Backpack backpack;
+
+// map
+char map[MAP_HEIGHT][MAP_WIDTH];
 
 int main()
 {
@@ -245,6 +278,42 @@ void heapify_item(Item arr[], int size, int i)
         l = i * 2 + 1;
     }
 }
+
+// 初始化地圖
+void initialize_map(){
+    /*
+        1.map初始化(空地:'.'、牆:'#')
+        2.生成 boss(顯示:'B')、player(顯示:'P')
+        3.生成 enemy、shop: (random (x,y)) if (x,y)不是空地 then 重新random或取下一個值
+    */
+
+    // 生成空地'.'
+    for(int y = 1; y < MAP_HEIGHT-1; y++){
+        for(int x = 1; x < MAP_WIDTH-1; x++){
+            map[y][x] = '.';
+        }
+    }
+
+    // 生成牆'#'
+    for(int x = 0; x < MAP_WIDTH; x++){
+            map[0][x] = '#';
+            map[MAP_HEIGHT][x] = '#';
+    }
+    for(int y = 0; y < MAP_HEIGHT; y++){
+            map[y][0] = '#';
+            map[y][MAP_WIDTH] = '#';
+    }
+
+    // 生成 boss(B) 、player(P)
+    map[MAP_HEIGHT-1][MAP_WIDTH-1] = 'P';
+    map[1][1] = 'B';
+
+    // 生成敵人'?'...
+
+    // 生成商店'$'
+}
+
+
 
 /*
 未來考慮加入：武器系統、裝備系統

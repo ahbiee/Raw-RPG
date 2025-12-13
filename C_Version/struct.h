@@ -3,6 +3,8 @@
 
 #define MAX_ENTITIES 8
 #define MAX_ITEMS 16
+#define MAP_HEIGHT 20
+#define MAP_WIDTH 40
 
 typedef struct{
     /*
@@ -58,6 +60,9 @@ typedef struct{
     int gold;
     // TODO: add more usages for gold
 } Backpack; // player's backpack
+
+
+void initialize_map(); // 初始化地圖
 
 void setupEnemy(int i); // 設定敵人屬性
 
