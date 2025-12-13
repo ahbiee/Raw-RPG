@@ -37,13 +37,13 @@ typedef struct{
         @Explanation
         id: item id
         name: item name
-        value: the cost of item
+        cost: the cost of item
         count: how many items player have
         can_be_used_in_map: 0->no, 1->yes
     */
     int id;
     char name[16];
-    int value;
+    int cost;
     int count;
     int can_be_used_in_map;
 } Item;

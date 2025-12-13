@@ -28,14 +28,14 @@ const Entity enemy_db[] = {
 };
 
 const Item weapon_db[] = {
-//  id, name, value, count, can_be_used_in_map
+//  id, name, cost, count, can_be_used_in_map
     {0, "Sword",       5, 1, 0},
     {1, "Axe",        10, 1, 0},
     {2, "Bow",        15, 1, 0},
 };
 
 const Item armor_db[] = {
-//  id, name, value, count, can_be_used_in_map
+//  id, name, cost, count, can_be_used_in_map
     {0, "Helmet",     13, 1, 1}, // 頭盔: map模式可穿上
     {1, "Chestplace", 20, 1, 1}, // 胸甲: map模式可穿上
     {2, "Leggings",   13, 1, 1}, // 護腿: map模式可穿上
@@ -43,7 +43,7 @@ const Item armor_db[] = {
 };
 
 const Item posion_db[] = {
-//  id, name, value, count, can_be_used_in_map
+//  id, name, cost, count, can_be_used_in_map
     {0, "Hp_Posion",  10, 1, 1}, // 生命藥水: map模式可喝
     {1, "Pw_Posion",  10, 1, 1}, // 力量藥水: map模式可喝
     {2, "Hm_Posion",  15, 1, 0}, // 傷害藥水
