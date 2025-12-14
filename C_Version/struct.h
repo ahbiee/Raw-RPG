@@ -7,7 +7,8 @@
 #define MAP_WIDTH 40
 #define MAP_HEIGHT 20
 
-typedef struct{
+typedef struct
+{
     /*
         @Explanation 各資料解釋
         id: 0: player, 1~N: enemy
@@ -33,7 +34,8 @@ typedef struct{
     int pos_y;
 } Entity; // Entity是實體，直接包含玩家(player)與敵人(enemy)
 
-typedef struct{
+typedef struct
+{
     /*
         @Explanation
         id: item id
@@ -49,7 +51,8 @@ typedef struct{
     int can_be_used_in_map;
 } Item;
 
-typedef struct{
+typedef struct
+{
     /*
         @Explanation
         items: put all items in one array
@@ -62,12 +65,11 @@ typedef struct{
     // TODO: add more usages for gold
 } Backpack; // player's backpack
 
-
-void initialize_map(); // 初始化地圖
+void initialize_map(int enemies_count); // 初始化地圖
 
 void setupEnemy(int i); // 設定敵人屬性
 
-void execute_attack(Entity* entity1, Entity* entity2); // 處理攻擊時的過程
+void execute_attack(Entity *entity1, Entity *entity2); // 處理攻擊時的過程
 
 int roll_defend(); // 骰防禦比例
 

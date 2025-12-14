@@ -18,43 +18,42 @@ Author:
 #include "struct.h"
 
 const Entity enemy_db[] = {
-// name, id, hp, maxhp, atk, speed, dodge_rate, crit_rate, is_alive, pos_x, pos_y
-    {"", -1, -1, -1, -1, -1, -1, -1, -1, 1, -1, -1}, // type 0 是 placeholder, 不應該存取到這
-    {"Slime",    -1, 20, 20, 3, 4, 0, 0, 1, -1, -1}, // type 1 是 Slime
+    // name, id, hp, maxhp, atk, speed, dodge_rate, crit_rate, is_alive, pos_x, pos_y
+    {"", -1, -1, -1, -1, -1, -1, -1, -1, 1, -1},     // type 0 是 placeholder, 不應該存取到這
+    {"Slime", -1, 20, 20, 3, 4, 0, 0, 1, -1, -1},    // type 1 是 Slime
     {"Skeleton", -1, 15, 15, 8, 7, 5, 5, 1, -1, -1}, // type 2 是 Skeleton
-    {"Zombie",   -1, 40, 40, 5, 2, 1, 1, 1, -1, -1}, // type 3 是 Zombie
-    {"Goblin",   -1, 30, 30, 6, 6, 3, 3, 1, -1, -1}, // type 4 是 Goblin
-    {"Ghost",  -1, 5, 5, 15, 10, 30, 10, 1, -1, -1}  // type 5 是 Ghost
+    {"Zombie", -1, 40, 40, 5, 2, 1, 1, 1, -1, -1},   // type 3 是 Zombie
+    {"Goblin", -1, 30, 30, 6, 6, 3, 3, 1, -1, -1},   // type 4 是 Goblin
+    {"Ghost", -1, 5, 5, 15, 10, 30, 10, 1, -1, -1}   // type 5 是 Ghost
 };
 
 const Item weapon_db[] = {
-//  id, name, cost, count, can_be_used_in_map
-    {0, "Sword",       5, 1, 0},
-    {1, "Axe",        10, 1, 0},
-    {2, "Bow",        15, 1, 0},
+    //  id, name, cost, count, can_be_used_in_map
+    {0, "Sword", 5, 1, 0},
+    {1, "Axe", 10, 1, 0},
+    {2, "Bow", 15, 1, 0},
 };
 
 const Item armor_db[] = {
-//  id, name, cost, count, can_be_used_in_map
-    {0, "Helmet",     13, 1, 1}, // 頭盔: map模式可穿上
+    //  id, name, cost, count, can_be_used_in_map
+    {0, "Helmet", 13, 1, 1},     // 頭盔: map模式可穿上
     {1, "Chestplace", 20, 1, 1}, // 胸甲: map模式可穿上
-    {2, "Leggings",   13, 1, 1}, // 護腿: map模式可穿上
-    {3, "Boost",       8, 1, 1}, // 靴子: map模式可穿上
+    {2, "Leggings", 13, 1, 1},   // 護腿: map模式可穿上
+    {3, "Boost", 8, 1, 1},       // 靴子: map模式可穿上
 };
 
 const Item posion_db[] = {
-//  id, name, cost, count, can_be_used_in_map
-    {0, "Hp_Posion",  10, 1, 1}, // 生命(health point)藥水: map模式可喝
-    {1, "Pw_Posion",  10, 1, 1}, // 力量(power)藥水: map模式可喝
-    {2, "Hm_Posion",  15, 1, 0}, // 傷害(harm)藥水
+    //  id, name, cost, count, can_be_used_in_map
+    {0, "Hp_Posion", 10, 1, 1}, // 生命(health point)藥水: map模式可喝
+    {1, "Pw_Posion", 10, 1, 1}, // 力量(power)藥水: map模式可喝
+    {2, "Hm_Posion", 15, 1, 0}, // 傷害(harm)藥水
 };
 
 // 彙整所有物品的指標陣列，方便隨機抽取 (可以考慮放在同一個陣列，只是先列出)
 const Item *item_random_arr[] = {
     &weapon_db[0], &weapon_db[1], &weapon_db[2],
     &armor_db[0], &armor_db[1], &armor_db[2], &armor_db[3],
-    &posion_db[0], &posion_db[1], &posion_db[2]
-};
+    &posion_db[0], &posion_db[1], &posion_db[2]};
 const int ITEM_RANDOM_COUNT = sizeof(item_random_arr) / sizeof(item_random_arr[0]);
 
 // ---------------------------------------------------------------------------------------------------------------------------
@@ -108,7 +107,8 @@ int main()
         else
         {
             int c;
-            while ((c = getchar()) != '\n' && c != EOF); // clear buffer
+            while ((c = getchar()) != '\n' && c != EOF)
+                ; // clear buffer
             // we don't need to manually replace the last character to '\n', it's automaticly done by fgets
         }
     }
@@ -157,9 +157,11 @@ int main()
     /*
     以下code是為了測試map能夠正常使用，可以先不管
     */
-    initialize_map();
-    for(int i=0; i<MAP_HEIGHT; ++i){
-        for(int j=0; j<MAP_WIDTH; ++j){
+    initialize_map(enemy_count);
+    for (int i = 0; i < MAP_HEIGHT; ++i)
+    {
+        for (int j = 0; j < MAP_WIDTH; ++j)
+        {
             printf("%c", map[i][j]);
         }
         puts("");
@@ -185,13 +187,15 @@ void setupEnemy(int i)
     entity[i].id = i;
     entity[i].is_alive = 1;
 
-    entity[i].pos_x = rand()%40; // 0~39
-    while(entity[i].pos_x == 0 || entity[i].pos_x == 39) entity[i].pos_x = rand()%40;
-    entity[i].pos_y = rand()%20; // 0~20
-    while(entity[i].pos_x == 0 || entity[i].pos_x == 19) entity[i].pos_y = rand()%20;
+    entity[i].pos_x = rand() % 40; // 0~39
+    while (entity[i].pos_x == 0 || entity[i].pos_x == 39)
+        entity[i].pos_x = rand() % 40;
+    entity[i].pos_y = rand() % 20; // 0~20
+    while (entity[i].pos_x == 0 || entity[i].pos_x == 19)
+        entity[i].pos_y = rand() % 20;
 
     printf("ID: %d, Type: %-10s (HP: %d, ATK: %d, SPD: %d), Spawned in x:%d, y:%d\n",
-          i, entity[i].name, entity[i].hp, entity[i].atk, entity[i].speed, entity[i].pos_x, entity[i].pos_y);
+           i, entity[i].name, entity[i].hp, entity[i].atk, entity[i].speed, entity[i].pos_x, entity[i].pos_y);
 }
 
 // 處理攻擊時的過程
@@ -290,7 +294,8 @@ void heapify_item(Item arr[], int size, int i)
 }
 
 // 初始化地圖
-void initialize_map(){
+void initialize_map(int enemies_count)
+{
     /*
         1.map初始化(空地:'.'、牆:'#')
         2.生成 boss(顯示:'B')、player(顯示:'P')
@@ -298,32 +303,74 @@ void initialize_map(){
     */
 
     // 生成空地'.'
-    for(int y = 1; y < MAP_HEIGHT-1; y++){
-        for(int x = 1; x < MAP_WIDTH-1; x++){
+    for (int y = 1; y < MAP_HEIGHT - 1; y++)
+    {
+        for (int x = 1; x < MAP_WIDTH - 1; x++)
+        {
             map[y][x] = '.';
         }
     }
 
     // 生成牆'#'
-    for(int x = 0; x < MAP_WIDTH; x++){
+    for (int x = 0; x < MAP_WIDTH; x++)
+    {
         map[0][x] = '#';
-        map[MAP_HEIGHT-1][x] = '#';
+        map[MAP_HEIGHT - 1][x] = '#';
     }
-    for(int y = 0; y < MAP_HEIGHT; y++){
+    for (int y = 0; y < MAP_HEIGHT; y++)
+    {
         map[y][0] = '#';
-        map[y][MAP_WIDTH-1] = '#';
+        map[y][MAP_WIDTH - 1] = '#';
     }
 
     // 生成 boss(B) 、player(P)
-    map[MAP_HEIGHT-2][MAP_WIDTH-2] = 'P';
+    map[MAP_HEIGHT - 2][MAP_WIDTH - 2] = 'P';
     map[1][1] = 'B';
 
     // 生成敵人'?'...
+    int x = 0, y = 0;              // coordinate of randomly generated object
+    int obj[enemies_count + 1][2]; // record the coordinate of the object we generated . +1 is because of the shop
+    int count = 1;
+    int flag = 0;
+
+    for (int i = 0; i < enemies_count; i++)
+    {
+        obj[i][0] = entity[i + 1].pos_x;
+        obj[i][1] = entity[i + 1].pos_y;
+    }
+    while (count <= enemies_count)
+    {
+        // randomly generated coodernates on the map
+        for (int i = 0; i < count; i++)
+        {
+            if (obj[i][0] == x || obj[i][1] == y)
+            {
+                x = rand() % 40;
+                x = rand() % 40;
+                flag = 1;
+                break; // this loop make sure the generated object will not have the same coordinate as the new one 確保生成過得不會跟新的座標一樣
+            }
+        }
+        if (flag == 1)
+        {
+            flag = 0;
+            continue;
+        }
+        else
+        {
+            obj[count][0] = x;
+            obj[count][1] = y;
+            count++;
+        }
+    }
+    for (int i = 0; i < enemies_count; i++)
+    {
+        map[obj[i][0]][obj[i][1]] = 'M';
+    }
 
     // 生成商店'$'
+    map[obj[enemies_count][0]][obj[enemies_count][1]] = '$';
 }
-
-
 
 /*
 未來考慮加入：武器系統、裝備系統
