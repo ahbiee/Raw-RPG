@@ -90,7 +90,7 @@ int main()
 {
     srand((unsigned)time(NULL)); // 用當前時間初始化隨機數(確保一定程度的偽隨機)
 
-    int enemy_count = rand() % 3 + 3;  // randomly encounter 3~5 enemies, the player will fight them one by one
+    int enemy_count = rand() % 6 + 10;  // randomly encounter 10~15 enemies, the player will fight them one by one
     int total_count = enemy_count + 1; // entity[0] is player
 
     printf("==========================================\n");
@@ -124,7 +124,7 @@ int main()
     entity[0].is_alive = 1;
 
     printf("==========================================\n");
-    printf("Enemy list (3~5) for this game :\n");
+    printf("Enemy list (10~15) for this game :\n");
     for (int i = 1; i <= enemy_count; ++i)
     {
         setupEnemy(i);
@@ -187,15 +187,8 @@ void setupEnemy(int i)
     entity[i].id = i;
     entity[i].is_alive = 1;
 
-    entity[i].pos_x = rand() % 40; // 0~39
-    while (entity[i].pos_x == 0 || entity[i].pos_x == 39)
-        entity[i].pos_x = rand() % 40;
-    entity[i].pos_y = rand() % 20; // 0~20
-    while (entity[i].pos_x == 0 || entity[i].pos_x == 19)
-        entity[i].pos_y = rand() % 20;
-
-    printf("ID: %d, Type: %-10s (HP: %d, ATK: %d, SPD: %d), Spawned in x:%d, y:%d\n",
-           i, entity[i].name, entity[i].hp, entity[i].atk, entity[i].speed, entity[i].pos_x, entity[i].pos_y);
+    printf("ID: %2d, Type: %-8s (HP: %2d, ATK: %2d, SPD: %2d)\n",
+           i, entity[i].name, entity[i].hp, entity[i].atk, entity[i].speed);
 }
 
 // 處理攻擊時的過程
@@ -302,14 +295,10 @@ void initialize_map(int enemies_count)
         3.生成 enemy、shop: (random (x,y)) if (x,y)不是空地 then 重新random或取下一個值
     */
 
-    // 生成空地'.'
+    // 生成空地'.' (1~38)
     for (int y = 1; y < MAP_HEIGHT - 1; y++)
-    {
         for (int x = 1; x < MAP_WIDTH - 1; x++)
-        {
             map[y][x] = '.';
-        }
-    }
 
     // 生成牆'#'
     for (int x = 0; x < MAP_WIDTH; x++)
@@ -324,52 +313,44 @@ void initialize_map(int enemies_count)
     }
 
     // 生成 boss(B) 、player(P)
+    entity[0].pos_x = MAP_HEIGHT - 2;
+    entity[0].pos_y = MAP_WIDTH - 2;
     map[MAP_HEIGHT - 2][MAP_WIDTH - 2] = 'P';
     map[1][1] = 'B';
 
-    // 生成敵人'?'...
-    int x = 0, y = 0;              // coordinate of randomly generated object
-    int obj[enemies_count + 1][2]; // record the coordinate of the object we generated . +1 is because of the shop
-    int count = 1;
-    int flag = 0;
+    // 生成敵人'M'
+    // 從 id=1 開始 (0 是玩家)
+    for (int i = 1; i <= enemies_count; i++) 
+    {
+        int rand_x, rand_y; // 存隨機出來的數值
+        int attempts = 0; // 防止無限迴圈的保險機制
 
-    for (int i = 0; i < enemies_count; i++)
-    {
-        obj[i][0] = entity[i + 1].pos_x;
-        obj[i][1] = entity[i + 1].pos_y;
-    }
-    while (count <= enemies_count)
-    {
-        // randomly generated coodernates on the map
-        for (int i = 0; i < count; i++)
-        {
-            if (obj[i][0] == x || obj[i][1] == y)
-            {
-                x = rand() % 40;
-                x = rand() % 40;
-                flag = 1;
-                break; // this loop make sure the generated object will not have the same coordinate as the new one 確保生成過得不會跟新的座標一樣
-            }
-        }
-        if (flag == 1)
-        {
-            flag = 0;
-            continue;
-        }
-        else
-        {
-            obj[count][0] = x;
-            obj[count][1] = y;
-            count++;
-        }
-    }
-    for (int i = 0; i < enemies_count; i++)
-    {
-        map[obj[i][0]][obj[i][1]] = 'M';
+        do {
+            // 隨機生成座標 (1 ~ 寬度-2)，避開牆壁
+            rand_x = rand() % (MAP_WIDTH - 2) + 1;
+            rand_y = rand() % (MAP_HEIGHT - 2) + 1;
+            attempts++;
+            
+            // 如果骰太多次都沒位置，就強制跳出
+            if(attempts > 1000) break;
+
+        } while (map[rand_y][rand_x] != '.'); // 如果地圖上這一格不是空地(可能是牆、B、P、或已經生成的M)，就重骰
+
+        map[rand_y][rand_x] = 'M';
+        
+        // 設定 entity 的資料
+        entity[i].pos_x = rand_x;
+        entity[i].pos_y = rand_y;
     }
 
     // 生成商店'$'
-    map[obj[enemies_count][0]][obj[enemies_count][1]] = '$';
+    int shop_x, shop_y;
+    do {
+        shop_x = rand() % (MAP_WIDTH - 2) + 1;
+        shop_y = rand() % (MAP_HEIGHT - 2) + 1;
+    } while (map[shop_y][shop_x] != '.'); // 確保不重疊
+
+    map[shop_y][shop_x] = '$';
 }
 
 /*
@@ -384,11 +365,8 @@ map set:地圖initialize 40*20(包含邊界)
         玩家生成左上角
         商店隨機生成
         系統random分配enemies' x,y;
-TODO: 處理商店生成、討論地圖大小問題
 
-除了戰鬥外，每個行動後顯示地圖與可執行動作(移動:上下左右、使用道具:可以在地圖使用的物品->列出來->再選擇)
-TODO: 兩個map 一個char顯示地圖狀況(.空白 P玩家 $商店 B魔王...)
-              一個int處理地圖佔據狀況(兩個怪物、商店不能生在同一個位置)
+地圖模式：每個行動後顯示地圖與可執行動作(移動:上下左右、使用道具:可以在地圖使用的物品->列出來->再選擇)
 
 商店模式：顯示四個可購買物品
 TODO: shop_db物品種類要有哪些、地圖會有幾個商店、價格...

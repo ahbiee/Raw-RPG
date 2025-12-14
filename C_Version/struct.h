@@ -1,7 +1,7 @@
 #ifndef STRUCT_H
 #define STRUCT_H
 
-#define MAX_ENTITIES 8
+#define MAX_ENTITIES 16
 #define MAX_ITEMS 16
 
 #define MAP_WIDTH 40
