@@ -32,7 +32,8 @@ typedef struct
     int is_alive;
     int pos_x;
     int pos_y;
-} Entity; // Entity是實體，直接包含玩家(player)與敵人(enemy)
+    char type; // 'P'->player, 'E'->enemy, 'B'->boss , '$'->shop
+} Entity;      // Entity是實體，直接包含玩家(player)與敵人(enemy)
 
 typedef struct
 {
@@ -68,7 +69,8 @@ typedef struct
 void initialize_map(int enemies_count); // 初始化地圖
 
 void setupEnemy(int i); // 設定敵人屬性
-
+void action(char nextAction, Entity *player);
+void refresh_map(Entity entities[MAX_ENTITIES]);
 void execute_attack(Entity *entity1, Entity *entity2); // 處理攻擊時的過程
 
 int roll_defend(); // 骰防禦比例

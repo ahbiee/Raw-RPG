@@ -90,7 +90,7 @@ int main()
 {
     srand((unsigned)time(NULL)); // 用當前時間初始化隨機數(確保一定程度的偽隨機)
 
-    int enemy_count = rand() % 6 + 10;  // randomly encounter 10~15 enemies, the player will fight them one by one
+    int enemy_count = rand() % 6 + 10; // randomly encounter 10~15 enemies, the player will fight them one by one
     int total_count = enemy_count + 1; // entity[0] is player
 
     printf("==========================================\n");
@@ -115,6 +115,7 @@ int main()
 
     printf("Welcome, %s\n", entity[0].name);
 
+    // initialization of player
     entity[0].id = 0;
     entity[0].hp = entity[0].max_hp = 100;
     entity[0].atk = 20;
@@ -122,6 +123,7 @@ int main()
     entity[0].dodge_rate = 10;
     entity[0].crit_rate = 5;
     entity[0].is_alive = 1;
+    entity[0].type = 'P';
 
     printf("==========================================\n");
     printf("Enemy list (10~15) for this game :\n");
@@ -130,6 +132,36 @@ int main()
         setupEnemy(i);
     }
     printf("==========================================\n");
+
+    initialize_map(enemy_count);
+    for (int i = 0; i < MAP_HEIGHT; ++i)
+    {
+        for (int j = 0; j < MAP_WIDTH; ++j)
+        {
+            printf("%c", map[i][j]);
+        }
+        puts("");
+    }
+
+    // while player still keep in game
+    while (entity[0].is_alive == 1)
+    {
+        char nextAction; // the upcoming action
+
+        printf("What's your action?\n");
+        printf("move up:W\n");
+        printf("move down:S\n");
+        printf("move left:A\n");
+        printf("move right:D\n");
+        printf("其他動作我忘記要不要了\n");
+        printf("The action your going to make is:");
+        scanf("%c", &nextAction);
+        getchar();
+        puts("");
+        action(nextAction, &entity[0]);
+        refresh_map(entity);
+    }
+    printf("You're DEAD.\n");
 
     /*
     以下code是為了測試player backpack與heap sort能夠正常使用，可以先不管
@@ -157,15 +189,6 @@ int main()
     /*
     以下code是為了測試map能夠正常使用，可以先不管
     */
-    initialize_map(enemy_count);
-    for (int i = 0; i < MAP_HEIGHT; ++i)
-    {
-        for (int j = 0; j < MAP_WIDTH; ++j)
-        {
-            printf("%c", map[i][j]);
-        }
-        puts("");
-    }
 
     return 0;
 }
@@ -178,7 +201,7 @@ void setupEnemy(int i)
     // status from template
     strncpy(entity[i].name, enemy_db[type].name, sizeof(entity[i].name) - 1); // 存到destination的容量-1
     entity[i].name[sizeof(entity[i].name) - 1] = '\0';                        // 讓destination的最後一個位元變成 '\0'，保證字串安全
-
+    entity[i].type = 'M';
     entity[i].hp = entity[i].max_hp = enemy_db[type].hp;
     entity[i].atk = enemy_db[type].atk;
     entity[i].speed = enemy_db[type].speed;
@@ -320,24 +343,26 @@ void initialize_map(int enemies_count)
 
     // 生成敵人'M'
     // 從 id=1 開始 (0 是玩家)
-    for (int i = 1; i <= enemies_count; i++) 
+    for (int i = 1; i <= enemies_count; i++)
     {
         int rand_x, rand_y; // 存隨機出來的數值
-        int attempts = 0; // 防止無限迴圈的保險機制
+        int attempts = 0;   // 防止無限迴圈的保險機制
 
-        do {
+        do
+        {
             // 隨機生成座標 (1 ~ 寬度-2)，避開牆壁
             rand_x = rand() % (MAP_WIDTH - 2) + 1;
             rand_y = rand() % (MAP_HEIGHT - 2) + 1;
             attempts++;
-            
+
             // 如果骰太多次都沒位置，就強制跳出
-            if(attempts > 1000) break;
+            if (attempts > 1000)
+                break;
 
         } while (map[rand_y][rand_x] != '.'); // 如果地圖上這一格不是空地(可能是牆、B、P、或已經生成的M)，就重骰
 
         map[rand_y][rand_x] = 'M';
-        
+
         // 設定 entity 的資料
         entity[i].pos_x = rand_x;
         entity[i].pos_y = rand_y;
@@ -345,16 +370,71 @@ void initialize_map(int enemies_count)
 
     // 生成商店'$'
     int shop_x, shop_y;
-    do {
+    do
+    {
         shop_x = rand() % (MAP_WIDTH - 2) + 1;
         shop_y = rand() % (MAP_HEIGHT - 2) + 1;
     } while (map[shop_y][shop_x] != '.'); // 確保不重疊
 
     map[shop_y][shop_x] = '$';
 }
+void action(char nextAction, Entity *player)
+{
+    switch (nextAction)
+    {
+    case 'W':
+        if (player->pos_x > 1) // 防止超出上邊界
+            player->pos_x -= 1;
+        break;
+    case 'A':
+        if (player->pos_y > 1) // 防止超出左邊界
+            player->pos_y -= 1;
+        break;
+    case 'S':
+        if (player->pos_x < MAP_HEIGHT - 2) // 防止超出下邊界
+            player->pos_x += 1;
+        break;
+    case 'D':
+        if (player->pos_y < MAP_WIDTH - 2) // 防止超出右邊界
+            player->pos_y += 1;
+        break;
+    default:
+        break;
+    }
+}
 
+void refresh_map(Entity entities[MAX_ENTITIES])
+{
+
+    // Reset the inner map with '.', keep the walls
+    for (int y = 1; y < MAP_HEIGHT; y++)
+    {
+        for (int x = 1; x < MAP_WIDTH; x++)
+        {
+            if (map[y][x] == '#' || map[y][x] == '$' || map[y][x] == 'B' || map[y][x] == 'M')
+                continue; // keep the wall
+            map[y][x] = '.';
+        }
+    }
+    // then put objects back
+
+    map[entities[0].pos_x][entities[0].pos_y] = 'P'; // player
+
+    // print the map again
+    for (int i = 0; i < MAP_HEIGHT; ++i)
+    {
+        for (int j = 0; j < MAP_WIDTH; ++j)
+        {
+            printf("%c", map[i][j]);
+        }
+        if (i < MAP_HEIGHT - 1)
+            puts("");
+        else
+            printf(" Player position: (%d, %d)\n", entities[0].pos_x, entities[0].pos_y);
+    }
+}
 /*
-未來考慮加入：武器系統、裝備系統
+未來考慮加入：武器系統、裝備系統 );//consider set a flag at refresh_map if change happen flag =1 之類的
 
 背包：包含金幣、背包系統(例如不同效果的potion、不同數值的武器)
 背包系統:總共16格，進入戰鬥選擇四個手持物品。

@@ -1,0 +1,5 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/wangbaiyan/RPG-Game/C_Version/main'
+relocations:     []
+...
