@@ -434,6 +434,23 @@ void refresh_map(Entity entities[MAX_ENTITIES])
     }
 }
 /*
+        /  )))
+    ／ イ  　　　(((ヽ
+    (　 ﾉ　　　　 ￣Ｙ＼
+    |　(＼　(\  /) ｜ )
+    ヽ　ヽ` ( ﾟ∀ﾟ)_ノ /
+    　＼ |　⌒Ｙ⌒　/  /
+    　 ｜ヽ　 ｜　 ﾉ ／
+    　  ＼トー仝ーイ
+    　　 ｜ ミ土彡/
+          )\ °  //
+         (  \ / \. \
+         /  /  \ \  \
+       / / /     \ \  \
+      ((  ).       ) ). )
+     (    ).       ( |  |
+      |   /        \   |
+   nnn.  ).         (  .nnn
 未來考慮加入：武器系統、裝備系統 );//consider set a flag at refresh_map if change happen flag =1 之類的
 
 背包：包含金幣、背包系統(例如不同效果的potion、不同數值的武器)
