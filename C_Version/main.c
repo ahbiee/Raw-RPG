@@ -159,6 +159,30 @@ int main()
         getchar();
         puts("");
         action(nextAction, &entity[0]);
+
+        switch (map[entity[0].pos_x][entity[0].pos_y])
+        {
+        case 'M':
+            // 進入戰鬥模式
+            int ind;
+            for (int i = 1; i < MAX_ENTITIES; i++)
+            {
+                if (entity[i].pos_x == entity[0].pos_x && entity[i].pos_y == entity[0].pos_y)
+                {
+                    ind = i;
+                    break;
+                }
+            } // confirm which enemy to fight
+
+            execute_attack(&entity[0], &entity[ind]); // TODO: 之後要改成對應的敵人
+            break;
+        case '$':
+            // 進入商店模式
+            meet_shop();
+            break;
+        default:
+            break;
+        }
         refresh_map(entity);
     }
     printf("You're DEAD.\n");
@@ -220,7 +244,7 @@ void execute_attack(Entity *entity1, Entity *entity2)
     if (!entity1->is_alive || !entity2->is_alive)
         return; // if one of the entity is not alive anymore, don't do anything
 
-    printf("%s attacked %s!\n", entity1->name, entity2->name);
+    printf("༼ つ/̵͇̿̿/’̿’̿ ̿ ̿̿ ̿̿◕ _◕ ༽つ/̵͇̿̿/’̿’̿ ̿ ̿̿ ̿̿ ̿̿    attacked %s!\n", entity2->name);
 
     int dmg = entity1->atk;
     /* TODO: before calling attack function and calculations, we need to ask player to defend or attack, and add randomized choice for enemies too
@@ -231,7 +255,10 @@ void execute_attack(Entity *entity1, Entity *entity2)
         e1 defend, e2 defend -> both roll the dice and check if there are awards
     */
 }
-
+void meet_shop()
+{
+    printf("You have met a shop!\n");
+}
 /*
 if entity called defend, we roll the dice:
     if the dice is between 50~100, defend successfully
@@ -407,16 +434,15 @@ void refresh_map(Entity entities[MAX_ENTITIES])
 {
 
     // Reset the inner map with '.', keep the walls
-    for (int y = 1; y < MAP_HEIGHT; y++)
+    for (int y = 1; y < MAP_HEIGHT - 1; y++)
     {
-        for (int x = 1; x < MAP_WIDTH; x++)
+        for (int x = 1; x < MAP_WIDTH - 1; x++)
         {
-            if (map[y][x] == '#' || map[y][x] == '$' || map[y][x] == 'B' || map[y][x] == 'M')
+            if (map[y][x] == '$' || map[y][x] == 'B' || map[y][x] == 'M')
                 continue; // keep the wall
             map[y][x] = '.';
         }
     }
-    // then put objects back
 
     map[entities[0].pos_x][entities[0].pos_y] = 'P'; // player
 

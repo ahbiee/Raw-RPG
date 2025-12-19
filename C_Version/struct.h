@@ -79,5 +79,5 @@ int roll_defend(); // 骰防禦比例
 void sort_backpack();
 void swap_items(int a, int b);
 void heapify_item(Item arr[], int size, int i);
-
+void meet_shop();
 #endif
