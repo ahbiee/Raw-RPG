@@ -77,7 +77,7 @@ ENEMY:
 4. check entity status
 */
 
-// 最多 玩家 + 5個敵人 = 6個實體，我開[8]的陣列確保不會出問題
+// 玩家+敵人最多16個實體
 Entity entity[MAX_ENTITIES];
 
 // player's backpack
@@ -115,16 +115,10 @@ int main()
 
     printf("Welcome, %s\n", entity[0].name);
 
-    // initialization of player
-    entity[0].id = 0;
-    entity[0].hp = entity[0].max_hp = 100;
-    entity[0].atk = 20;
-    entity[0].speed = 5;
-    entity[0].dodge_rate = 10;
-    entity[0].crit_rate = 5;
-    entity[0].is_alive = 1;
-    entity[0].type = 'P';
+    // 初始化玩家屬性
+    initialize_Player();
 
+    // 設定所有敵人屬性
     printf("==========================================\n");
     printf("Enemy list (10~15) for this game :\n");
     for (int i = 1; i <= enemy_count; ++i)
@@ -133,7 +127,10 @@ int main()
     }
     printf("==========================================\n");
 
+    // 初始化地圖
     initialize_map(enemy_count);
+
+    // 印出地圖
     for (int i = 0; i < MAP_HEIGHT; ++i)
     {
         for (int j = 0; j < MAP_WIDTH; ++j)
@@ -143,7 +140,7 @@ int main()
         puts("");
     }
 
-    // while player still keep in game
+    // 地圖模式主迴圈
     while (entity[0].is_alive == 1)
     {
         char nextAction; // the upcoming action
@@ -154,9 +151,10 @@ int main()
         printf("move left:A\n");
         printf("move right:D\n");
         printf("其他動作我忘記要不要了\n");
+
         printf("The action your going to make is:");
         scanf("%c", &nextAction);
-        getchar();
+        getchar();     // TODO: 原是為了吸收換行符號，但會導致連續兩次輸入時第二次被跳過，要改掉
         puts("");
         action(nextAction, &entity[0]);
 
@@ -173,19 +171,22 @@ int main()
                     break;
                 }
             } // confirm which enemy to fight
-
             execute_attack(&entity[0], &entity[ind]); // TODO: 之後要改成對應的敵人
             break;
+
         case '$':
             // 進入商店模式
             meet_shop();
             break;
+
         default:
             break;
         }
         refresh_map(entity);
     }
     printf("You're DEAD.\n");
+
+
 
     /*
     以下code是為了測試player backpack與heap sort能夠正常使用，可以先不管
@@ -209,12 +210,23 @@ int main()
     for (int i = 0; i < backpack.item_count; i++)
         printf("%d ", backpack.items[i].id);
     printf("\n");
-
     /*
-    以下code是為了測試map能夠正常使用，可以先不管
+    以上code是為了測試map能夠正常使用，可以先不管
     */
 
     return 0;
+}
+
+// 初始化玩家屬性
+void initialize_Player(){
+    entity[0].id = 0;
+    entity[0].hp = entity[0].max_hp = 100;
+    entity[0].atk = 20;
+    entity[0].speed = 5;
+    entity[0].dodge_rate = 10;
+    entity[0].crit_rate = 5;
+    entity[0].is_alive = 1;
+    entity[0].type = 'P';
 }
 
 // 設定敵人屬性
@@ -291,14 +303,16 @@ int roll_defend()
     // TODO: if percent == 100, we need to give entity some awards, for example healing or attack bonus
     int percent = rand() % 100;
     if (percent >= 50)
-        return 0; // 完美格檔 (受傷 0%)
+        return 0;  // 完美格檔 (受傷 0%)
     if (percent >= 25)
         return 50; // 成功格檔 (受傷 50%)
     if (percent >= 10)
         return 80; // 輕微格檔 (受傷 80%)
+        
     return 100;    // 格檔失敗 (受傷 100%)
 }
 
+// 整理背包
 void sort_backpack()
 {
     int n = backpack.item_count;
@@ -313,6 +327,7 @@ void sort_backpack()
     }
 }
 
+// 交換背包中的兩個物品
 void swap_items(int a, int b)
 {
     Item tmp = backpack.items[a];
@@ -340,9 +355,10 @@ void heapify_item(Item arr[], int size, int i)
 void initialize_map(int enemies_count)
 {
     /*
-        1.map初始化(空地:'.'、牆:'#')
-        2.生成 boss(顯示:'B')、player(顯示:'P')
-        3.生成 enemy、shop: (random (x,y)) if (x,y)不是空地 then 重新random或取下一個值
+        Args: 
+            enemies_count: 敵人數量
+        功能:
+            map生成 空地('.')、牆('#')、boss('B')、player('P') ; 隨機生成 enemy('M')、shop('$')
     */
 
     // 生成空地'.' (1~38)
@@ -369,8 +385,7 @@ void initialize_map(int enemies_count)
     map[1][1] = 'B';
 
     // 生成敵人'M'
-    // 從 id=1 開始 (0 是玩家)
-    for (int i = 1; i <= enemies_count; i++)
+    for (int i = 1; i <= enemies_count; i++)    // 從 id=1 開始 (0 是玩家)
     {
         int rand_x, rand_y; // 存隨機出來的數值
         int attempts = 0;   // 防止無限迴圈的保險機制
@@ -405,8 +420,17 @@ void initialize_map(int enemies_count)
 
     map[shop_y][shop_x] = '$';
 }
+
+// 玩家在地圖模式的行動
 void action(char nextAction, Entity *player)
 {
+    /*
+        Args:
+            nextAction: user輸入的下一個動作
+            *player: 指向玩家的指標
+        功能:
+            根據玩家輸入的動作，更新玩家在地圖上的位置
+    */
     switch (nextAction)
     {
     case 'W':

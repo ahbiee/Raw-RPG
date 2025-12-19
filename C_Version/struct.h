@@ -66,11 +66,14 @@ typedef struct
     // TODO: add more usages for gold
 } Backpack; // player's backpack
 
-void initialize_map(int enemies_count); // 初始化地圖
 
-void setupEnemy(int i); // 設定敵人屬性
-void action(char nextAction, Entity *player);
-void refresh_map(Entity entities[MAX_ENTITIES]);
+
+void initialize_map(int enemies_count); // 初始化地圖
+void initialize_Player();               // 初始化玩家屬性
+void setupEnemy(int i);                 // 設定敵人屬性
+
+void action(char nextAction, Entity *player);          // 玩家在地圖模式的行動
+void refresh_map(Entity entities[MAX_ENTITIES]);       // 更新地圖
 void execute_attack(Entity *entity1, Entity *entity2); // 處理攻擊時的過程
 
 int roll_defend(); // 骰防禦比例
