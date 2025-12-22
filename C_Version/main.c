@@ -131,34 +131,22 @@ int main()
     initialize_map(enemy_count);
 
     // 印出地圖
-    for (int i = 0; i < MAP_HEIGHT; ++i)
-    {
-        for (int j = 0; j < MAP_WIDTH; ++j)
-        {
-            printf("%c", map[i][j]);
-        }
-        puts("");
-    }
+    print_map();
+    print_action_prompt();
 
     // 地圖模式主迴圈
     while (entity[0].is_alive == 1)
     {
         char nextAction; // the upcoming action
-
-        printf("What's your action?\n");
-        printf("move up:W\n");
-        printf("move down:S\n");
-        printf("move left:A\n");
-        printf("move right:D\n");
-        printf("其他動作我忘記要不要了\n");
-
-        printf("The action your going to make is:");
+        
         scanf("%c", &nextAction);
-        getchar();     // TODO: 原是為了吸收換行符號，但會導致連續兩次輸入時第二次被跳過，要改掉
-        puts("");
-        action(nextAction, &entity[0]);
+        if(nextAction == '\n'){
+            print_action_prompt();
+            continue; // avoid enter key input
+        }
+        action(nextAction, &entity[0]); // update player position
 
-        switch (map[entity[0].pos_x][entity[0].pos_y])
+        switch (map[entity[0].pos_y][entity[0].pos_x])
         {
         case 'M':
             // 進入戰鬥模式
@@ -171,6 +159,7 @@ int main()
                     break;
                 }
             } // confirm which enemy to fight
+            printf("You have encountered %s!\n", entity[ind].name);
             execute_attack(&entity[0], &entity[ind]); // TODO: 之後要改成對應的敵人
             break;
 
@@ -182,7 +171,7 @@ int main()
         default:
             break;
         }
-        refresh_map(entity);
+        refresh_map();
     }
     printf("You're DEAD.\n");
 
@@ -217,6 +206,35 @@ int main()
     return 0;
 }
 
+// 印出玩家行動提示
+void print_action_prompt()
+{
+    printf("What's your action?\n");
+    printf("W: move up\n");
+    printf("S: move down\n");
+    printf("A: move left\n");
+    printf("D: move right\n");
+    printf("其他動作我忘記要不要了\n");
+
+    printf("The action your going to make is:");
+}
+
+// 印出地圖
+void print_map()
+{
+    for (int i = 0; i < MAP_HEIGHT; ++i)
+    {
+        for (int j = 0; j < MAP_WIDTH; ++j)
+        {
+            printf("%c", map[i][j]);
+        }
+        if (i < MAP_HEIGHT - 1)
+            puts("");
+        else
+            printf(" Player position: (%d, %d)\n", entity[0].pos_x, entity[0].pos_y);
+    }
+}
+
 // 初始化玩家屬性
 void initialize_Player(){
     entity[0].id = 0;
@@ -227,6 +245,8 @@ void initialize_Player(){
     entity[0].crit_rate = 5;
     entity[0].is_alive = 1;
     entity[0].type = 'P';
+    entity[0].pos_x = MAP_WIDTH - 2;
+    entity[0].pos_y = MAP_HEIGHT - 2;
 }
 
 // 設定敵人屬性
@@ -251,14 +271,14 @@ void setupEnemy(int i)
 }
 
 // 處理攻擊時的過程
-void execute_attack(Entity *entity1, Entity *entity2)
+void execute_attack(Entity *player, Entity *enemy)
 {
-    if (!entity1->is_alive || !entity2->is_alive)
+    if (!player->is_alive || !enemy->is_alive)
         return; // if one of the entity is not alive anymore, don't do anything
 
-    printf("༼ つ/̵͇̿̿/’̿’̿ ̿ ̿̿ ̿̿◕ _◕ ༽つ/̵͇̿̿/’̿’̿ ̿ ̿̿ ̿̿ ̿̿    attacked %s!\n", entity2->name);
+    printf("༼ つ/̵͇̿̿/’̿’̿ ̿ ̿̿ ̿̿◕ _◕ ༽つ/̵͇̿̿/’̿’̿ ̿ ̿̿ ̿̿ ̿̿    attacked %s!\n", enemy->name);
 
-    int dmg = entity1->atk;
+    int dmg = player->atk;
     /* TODO: before calling attack function and calculations, we need to ask player to defend or attack, and add randomized choice for enemies too
         for example:
         e1 attack, e2 defend -> e2 roll dice to check how many % to defend, then receive the damage from e1
@@ -267,35 +287,12 @@ void execute_attack(Entity *entity1, Entity *entity2)
         e1 defend, e2 defend -> both roll the dice and check if there are awards
     */
 }
+
+// 進入商店模式
 void meet_shop()
 {
     printf("You have met a shop!\n");
 }
-/*
-if entity called defend, we roll the dice:
-    if the dice is between 50~100, defend successfully
-    between 25~50, defend half of the damage
-    between 10~25, defend 20% of the damage
-    below 10, defend unsuccessful
-
-the function call will be like:
-    int def = defend();
-    attack_damage = (attack_damage * def) / 100;
-    switch(def){
-        case 0:
-            printf("perfect defend\n");
-            break;
-        case 50:
-            printf("great defend\n");
-            break;
-        case 80:
-            printf("nice defend\n");
-            break;
-        case 100:
-            printf("defend unsuccessfully\n");
-            break;
-    }
-*/
 
 // 骰防禦比例
 int roll_defend()
@@ -310,6 +307,31 @@ int roll_defend()
         return 80; // 輕微格檔 (受傷 80%)
         
     return 100;    // 格檔失敗 (受傷 100%)
+    /*
+    if entity called defend, we roll the dice:
+        if the dice is between 50~100, defend successfully
+        between 25~50, defend half of the damage
+        between 10~25, defend 20% of the damage
+        below 10, defend unsuccessful
+
+    the function call will be like:
+        int def = defend();
+        attack_damage = (attack_damage * def) / 100;
+        switch(def){
+            case 0:
+                printf("perfect defend\n");
+                break;
+            case 50:
+                printf("great defend\n");
+                break;
+            case 80:
+                printf("nice defend\n");
+                break;
+            case 100:
+                printf("defend unsuccessfully\n");
+                break;
+        }
+*/
 }
 
 // 整理背包
@@ -379,8 +401,6 @@ void initialize_map(int enemies_count)
     }
 
     // 生成 boss(B) 、player(P)
-    entity[0].pos_x = MAP_HEIGHT - 2;
-    entity[0].pos_y = MAP_WIDTH - 2;
     map[MAP_HEIGHT - 2][MAP_WIDTH - 2] = 'P';
     map[1][1] = 'B';
 
@@ -434,27 +454,28 @@ void action(char nextAction, Entity *player)
     switch (nextAction)
     {
     case 'W':
-        if (player->pos_x > 1) // 防止超出上邊界
-            player->pos_x -= 1;
-        break;
-    case 'A':
-        if (player->pos_y > 1) // 防止超出左邊界
+        if (player->pos_y > 1) // 防止超出上邊界
             player->pos_y -= 1;
         break;
+    case 'A':
+        if (player->pos_x > 1) // 防止超出左邊界
+            player->pos_x -= 1;
+        break;
     case 'S':
-        if (player->pos_x < MAP_HEIGHT - 2) // 防止超出下邊界
-            player->pos_x += 1;
+        if (player->pos_y < MAP_HEIGHT - 2) // 防止超出下邊界
+            player->pos_y += 1;
         break;
     case 'D':
-        if (player->pos_y < MAP_WIDTH - 2) // 防止超出右邊界
-            player->pos_y += 1;
+        if (player->pos_x < MAP_WIDTH - 2) // 防止超出右邊界
+            player->pos_x += 1;
         break;
     default:
         break;
     }
 }
 
-void refresh_map(Entity entities[MAX_ENTITIES])
+// 更新+印出地圖
+void refresh_map()
 {
 
     // Reset the inner map with '.', keep the walls
@@ -468,21 +489,16 @@ void refresh_map(Entity entities[MAX_ENTITIES])
         }
     }
 
-    map[entities[0].pos_x][entities[0].pos_y] = 'P'; // player
+    map[entity[0].pos_y][entity[0].pos_x] = 'P'; // player
 
     // print the map again
-    for (int i = 0; i < MAP_HEIGHT; ++i)
-    {
-        for (int j = 0; j < MAP_WIDTH; ++j)
-        {
-            printf("%c", map[i][j]);
-        }
-        if (i < MAP_HEIGHT - 1)
-            puts("");
-        else
-            printf(" Player position: (%d, %d)\n", entities[0].pos_x, entities[0].pos_y);
-    }
+    print_map();
 }
+
+
+
+// ---------------------------------------------------------------------------------------------------------------------------
+
 /*
         /  )))
     ／ イ  　　　(((ヽ
