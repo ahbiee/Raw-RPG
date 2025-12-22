@@ -58,25 +58,6 @@ const int ITEM_RANDOM_COUNT = sizeof(item_random_arr) / sizeof(item_random_arr[0
 
 // ---------------------------------------------------------------------------------------------------------------------------
 
-/*
-every round
-
-1. we need to print
-==============CURRENT STATUS==============
-PLAYER:
-    HP: xxx/max    ATK: xxx     SPD:xxx
-
-ENEMY:
-    HP: xxx/max    ATK: xxx     SPD:xxx
-==========================================
-
-2. asking attack or defend or use item
-
-3. calculate corresponding choices
-
-4. check entity status
-*/
-
 // 玩家+敵人最多16個實體
 Entity entity[MAX_ENTITIES];
 
@@ -117,6 +98,25 @@ int main()
 
     // 初始化玩家屬性
     initialize_Player();
+
+    /* 
+        以下測試背包輸出功能，可以先不管
+    */
+    backpack.gold = 100;
+    backpack.item_count = 5;
+    backpack.items[0] = *item_random_arr[0];
+    backpack.items[0].count = 1; // test count > 1
+    backpack.items[1] = *item_random_arr[1];
+    backpack.items[1].count = 1; // test count > 1
+    backpack.items[2] = *item_random_arr[2];
+    backpack.items[2].count = 1; // test count > 1
+    backpack.items[3] = *item_random_arr[3];
+    backpack.items[3].count = 1; // test count > 1
+    backpack.items[4] = *item_random_arr[4];
+    backpack.items[4].count = 1; // test count > 1
+    /* 
+        以上測試背包輸出功能，可以先不管
+    */
 
     // 設定所有敵人屬性
     printf("==========================================\n");
@@ -159,14 +159,17 @@ int main()
                     break;
                 }
             } // confirm which enemy to fight
-            printf("You have encountered %s!\n", entity[ind].name);
-            execute_attack(&entity[0], &entity[ind]); // TODO: 之後要改成對應的敵人
+            Battle_Mode(&entity[0], &entity[ind]);
             break;
 
         case '$':
             // 進入商店模式
-            meet_shop();
+            Shop_Mode();
             break;
+        
+        case 'B':
+            // 進入Boss戰鬥模式
+            printf("You have encountered the BOSS!\n");
 
         default:
             break;
@@ -235,6 +238,7 @@ void print_map()
     }
 }
 
+
 // 初始化玩家屬性
 void initialize_Player(){
     entity[0].id = 0;
@@ -270,6 +274,7 @@ void setupEnemy(int i)
            i, entity[i].name, entity[i].hp, entity[i].atk, entity[i].speed);
 }
 
+
 // 處理攻擊時的過程
 void execute_attack(Entity *player, Entity *enemy)
 {
@@ -286,12 +291,6 @@ void execute_attack(Entity *player, Entity *enemy)
         e1 attack, e2 attack -> the one with higher speed will attack first, then check status. if one is dead then return
         e1 defend, e2 defend -> both roll the dice and check if there are awards
     */
-}
-
-// 進入商店模式
-void meet_shop()
-{
-    printf("You have met a shop!\n");
 }
 
 // 骰防禦比例
@@ -334,6 +333,105 @@ int roll_defend()
 */
 }
 
+// 進入戰鬥模式
+void Battle_Mode(Entity *player, Entity *enemy)
+{
+    printf("You have encountered %s!\n", enemy->name);
+    enum { PLAYER, ENEMY } turn; // 我方 or 敵方回合
+    // TODO: 戰鬥的前置作業(例如: 計算攻擊順序、計算雙方屬性加成、選四個物品進入戰鬥等等)
+
+    // 進入戰鬥主迴圈
+    // while (player->is_alive == 1 && enemy->is_alive == 1)
+    // ...
+
+    /* 每回合流程:
+
+    1. we need to print
+    ==============CURRENT STATUS==============
+    PLAYER:
+        HP: xxx/max    ATK: xxx     SPD:xxx
+
+    ENEMY:
+        HP: xxx/max    ATK: xxx     SPD:xxx
+    ==========================================
+
+    2. asking attack or defend or use item
+
+    3. calculate corresponding choices
+
+    4. check entity status
+    */
+}
+
+// 進入商店模式
+void Shop_Mode()
+{   
+    // TODO: 隨機抽取四個物品供玩家選購、處理購買流程
+    printf("Welcome to the shop!\n");
+    Item shop_items[4];
+    int selected_indices[4] = {-1, -1, -1, -1};
+    
+    /*  商店範例輸出:
+        Welcome to the shop!
+        =================== Shop ===================    
+        Gold: 100
+        (0) Items_name: $10 | (物品功能介紹)
+        (1) Items_name: $20 | (物品功能介紹)
+        (2) Items_name: $30 | (物品功能介紹)
+        (3) Items_name: $40 | (物品功能介紹)
+    */
+}
+
+// 進入背包介面
+void Backpack_Mode()
+{
+    // TODO: 處理使用物品流程
+    /*
+        1. 印出背包內容
+        2. 讓玩家選擇要使用的物品 or 離開背包
+        3. 判斷物品是否能在地圖模式使用
+        4. 根據物品效果更新玩家狀態
+        5. 移除已使用的物品或更新數量
+    */
+}
+
+
+// 輸出背包物品
+void print_backpack()
+{
+    printf("================== Backpack ==================\n");
+    printf("Gold: %d\n", backpack.gold);
+    for (int i = 0; i < backpack.item_count; i++)
+    {   
+        if(backpack.items[i].count > 0)
+            printf("(%d) %s ×%d\n", i, backpack.items[i].name, backpack.items[i].count);
+        else
+            break;
+    }
+    printf("==============================================\n");
+
+    /* 背包範例輸出:
+    ----------------- Backpack -----------------
+    Gold: 100
+    (0) Items_name ×2
+    (1) Items_name ×1
+    (2) Items_name ×2
+    (3) Items_name ×2
+    (4) Items_name ×2
+    (5) Items_name ×1
+    (6) Items_name ×2
+    (7) Items_name ×2
+    (8) Items_name ×2
+    (9) Items_name ×1
+    (10) Items_name ×2
+    (11) Items_name ×2
+    (12) Items_name ×2
+    (13) Items_name ×1
+    (14) Items_name ×2
+    (15) Items_name ×2
+    */
+}
+
 // 整理背包
 void sort_backpack()
 {
@@ -372,6 +470,7 @@ void heapify_item(Item arr[], int size, int i)
         l = i * 2 + 1;
     }
 }
+
 
 // 初始化地圖
 void initialize_map(int enemies_count)
@@ -469,6 +568,9 @@ void action(char nextAction, Entity *player)
         if (player->pos_x < MAP_WIDTH - 2) // 防止超出右邊界
             player->pos_x += 1;
         break;
+    case 'E':
+        Backpack_Mode(); // 進入背包模式   TODO: 未來可以改成使用物品
+        break;
     default:
         break;
     }
@@ -477,7 +579,6 @@ void action(char nextAction, Entity *player)
 // 更新+印出地圖
 void refresh_map()
 {
-
     // Reset the inner map with '.', keep the walls
     for (int y = 1; y < MAP_HEIGHT - 1; y++)
     {
@@ -488,10 +589,8 @@ void refresh_map()
             map[y][x] = '.';
         }
     }
-
     map[entity[0].pos_y][entity[0].pos_x] = 'P'; // player
 
-    // print the map again
     print_map();
 }
 

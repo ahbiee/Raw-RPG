@@ -59,10 +59,12 @@ typedef struct
         items: put all items in one array
         item_count: the total amount of items
         gold: current gold, can be use to buy potions or maybe skip stage?
+        armor_slots: 0 -> head, 1 -> chest, 2 -> legs, 3 -> boots
     */
     Item items[MAX_ITEMS];
     int item_count;
     int gold;
+    Item armor_slots[4];
     // TODO: add more usages for gold
 } Backpack; // player's backpack
 
@@ -75,6 +77,7 @@ void setupEnemy(int i);                 // 設定敵人屬性
 void print_map();                 // 印出地圖
 void refresh_map();               // 更新+印出地圖
 void print_action_prompt();       // 印出玩家行動提示
+void print_backpack();            // 輸出所有背包物品
 
 void action(char nextAction, Entity *player);         // 玩家在地圖模式的行動
 void execute_attack(Entity *player, Entity *entity2); // 處理攻擊時的過程
@@ -85,5 +88,8 @@ int roll_defend(); // 骰防禦比例
 void sort_backpack();
 void swap_items(int a, int b);
 void heapify_item(Item arr[], int size, int i);
-void meet_shop();
+
+void Battle_Mode(Entity *player, Entity *enemy); // 進入對戰模式
+void Shop_Mode();                                // 進入商店模式
+void Backpack_Mode();                            // 進入背包模式
 #endif
