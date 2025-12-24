@@ -79,10 +79,13 @@ void refresh_map();               // 更新+印出地圖
 void print_action_prompt();       // 印出玩家行動提示
 void print_backpack();            // 輸出所有背包物品
 
-void action(char nextAction, Entity *player);         // 玩家在地圖模式的行動
+void action_map(char nextAction, Entity *player);         // 玩家在地圖模式的行動
 void execute_attack(Entity *player, Entity *entity2); // 處理攻擊時的過程
 
 int roll_defend(); // 骰防禦比例
+
+void use_item(); // 使用物品
+void Put_on_Armor(Item armor); // 穿上裝備 
 
 // backpack heap sort
 void sort_backpack();

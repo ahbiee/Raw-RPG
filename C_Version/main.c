@@ -64,6 +64,8 @@ Entity entity[MAX_ENTITIES];
 // player's backpack
 Backpack backpack;
 
+enum {MAP, BATTLE, SHOP, BACKPACK} GameMode;
+
 // map
 char map[MAP_HEIGHT][MAP_WIDTH];
 
@@ -136,7 +138,8 @@ int main()
 
     // 地圖模式主迴圈
     while (entity[0].is_alive == 1)
-    {
+    {   
+        GameMode = MAP;
         char nextAction; // the upcoming action
         
         scanf("%c", &nextAction);
@@ -144,12 +147,13 @@ int main()
             print_action_prompt();
             continue; // avoid enter key input
         }
-        action(nextAction, &entity[0]); // update player position
+        action_map(nextAction, &entity[0]); // update player position
 
         switch (map[entity[0].pos_y][entity[0].pos_x])
         {
         case 'M':
             // 進入戰鬥模式
+            GameMode = BATTLE;
             int ind;
             for (int i = 1; i < MAX_ENTITIES; i++)
             {
@@ -164,6 +168,7 @@ int main()
 
         case '$':
             // 進入商店模式
+            GameMode = SHOP;
             Shop_Mode();
             break;
         
@@ -212,14 +217,32 @@ int main()
 // 印出玩家行動提示
 void print_action_prompt()
 {
-    printf("What's your action?\n");
-    printf("W: move up\n");
-    printf("S: move down\n");
-    printf("A: move left\n");
-    printf("D: move right\n");
-    printf("其他動作我忘記要不要了\n");
+    switch (GameMode)
+    {
+    case MAP:
+        printf("What's your action?\n");
+        printf("W: move up\n");
+        printf("S: move down\n");
+        printf("A: move left\n");
+        printf("D: move right\n");
+        printf("其他動作我忘記要不要了\n");
+        printf("The action your going to make is:");
+        return;
+    case BATTLE:
+        return;
+        
+    
+    case SHOP:
 
-    printf("The action your going to make is:");
+    case BACKPACK:
+        printf("Select an item to use (enter negative number to exit): ");
+        return;
+
+    default:
+        return;
+    }
+        
+    
 }
 
 // 印出地圖
@@ -281,7 +304,7 @@ void execute_attack(Entity *player, Entity *enemy)
     if (!player->is_alive || !enemy->is_alive)
         return; // if one of the entity is not alive anymore, don't do anything
 
-    printf("༼ つ/̵͇̿̿/’̿’̿ ̿ ̿̿ ̿̿◕ _◕ ༽つ/̵͇̿̿/’̿’̿ ̿ ̿̿ ̿̿ ̿̿    attacked %s!\n", enemy->name);
+    
 
     int dmg = player->atk;
     /* TODO: before calling attack function and calculations, we need to ask player to defend or attack, and add randomized choice for enemies too
@@ -336,7 +359,7 @@ int roll_defend()
 // 進入戰鬥模式
 void Battle_Mode(Entity *player, Entity *enemy)
 {
-    printf("You have encountered %s!\n", enemy->name);
+    printf("╭∩╮( ͡⚆ ͜ʖ ͡⚆)╭∩╮    VS.    %s!\n", enemy->name);
     enum { PLAYER, ENEMY } turn; // 我方 or 敵方回合
     // TODO: 戰鬥的前置作業(例如: 計算攻擊順序、計算雙方屬性加成、選四個物品進入戰鬥等等)
 
@@ -390,11 +413,26 @@ void Backpack_Mode()
         1. 印出背包內容
         2. 讓玩家選擇要使用的物品 or 離開背包
         3. 判斷物品是否能在地圖模式使用
-        4. 根據物品效果更新玩家狀態
+        4. 根據物品效果更新玩家狀態 or 穿上裝備
         5. 移除已使用的物品或更新數量
     */
+    print_backpack();
+    int nextaction ;
+    while(1){
+        print_action_prompt();
+        scanf("%d", nextaction);
+        if(nextaction < 0){
+            printf("Leave your backpack.");
+            return;
+        }
+        else if(nextaction >= backpack.item_count){
+            printf("There are no items in this backpack slot.\n");
+        }
+        else{
+            // use_item();
+        }
+    }
 }
-
 
 // 輸出背包物品
 void print_backpack()
@@ -453,6 +491,16 @@ void swap_items(int a, int b)
     Item tmp = backpack.items[a];
     backpack.items[a] = backpack.items[b];
     backpack.items[b] = tmp;
+}
+
+// 使用物品
+void use_item(){
+
+}
+
+// 穿上裝備
+void Put_on_Armor(Item armor){
+    
 }
 
 // Max Heap, sort by id
@@ -541,7 +589,7 @@ void initialize_map(int enemies_count)
 }
 
 // 玩家在地圖模式的行動
-void action(char nextAction, Entity *player)
+void action_map(char nextAction, Entity *player)
 {
     /*
         Args:
@@ -569,12 +617,14 @@ void action(char nextAction, Entity *player)
             player->pos_x += 1;
         break;
     case 'E':
-        Backpack_Mode(); // 進入背包模式   TODO: 未來可以改成使用物品
+        GameMode = BACKPACK;
+        Backpack_Mode(); // 進入背包模式
         break;
     default:
         break;
     }
 }
+
 
 // 更新+印出地圖
 void refresh_map()
