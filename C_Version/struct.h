@@ -50,6 +50,7 @@ typedef struct
     int cost;
     int count;
     int can_be_used_in_map;
+    char type; // 'W'->weapon, 'A'->armor, 'P'->posion
 } Item;
 
 typedef struct
@@ -72,6 +73,7 @@ typedef struct
 
 void initialize_map(int enemies_count); // 初始化地圖
 void initialize_Player();               // 初始化玩家屬性
+void initialize_Backpack();             // 初始化背包
 void setupEnemy(int i);                 // 設定敵人屬性
 
 void print_map();                 // 印出地圖
@@ -84,8 +86,8 @@ void execute_attack(Entity *player, Entity *entity2); // 處理攻擊時的過�
 
 int roll_defend(); // 骰防禦比例
 
-void use_item(); // 使用物品
-void Put_on_Armor(Item armor); // 穿上裝備 
+void use_item(Item *item, int item_backpack_index); // 使用物品
+void Put_on_Armor(Item *armor, int item_backpack_index); // 穿上裝備 
 
 // backpack heap sort
 void sort_backpack();
