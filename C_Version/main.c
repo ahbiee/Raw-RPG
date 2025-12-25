@@ -36,11 +36,10 @@ const Item item_db[] = {
     {4, "Chestplace", 20, 1, 1, 'A'}, // 胸甲: map模式可穿上
     {5, "Leggings", 13, 1, 1, 'A'},   // 護腿: map模式可穿上
     {6, "Boost", 8, 1, 1, 'A'},       // 靴子: map模式可穿上
-    {7, "Hp_Posion", 10, 1, 1, 'P'}, // 生命(health point)藥水: map模式可喝
-    {8, "Pw_Posion", 10, 1, 1, 'P'}, // 力量(power)藥水: map模式可喝
-    {9, "Hm_Posion", 15, 1, 0, 'P'}, // 傷害(harm)藥水
+    {7, "Hp_Posion", 10, 1, 1, 'P'},  // 生命(health point)藥水: map模式可喝
+    {8, "Pw_Posion", 10, 1, 1, 'P'},  // 力量(power)藥水: map模式可喝
+    {9, "Hm_Posion", 15, 1, 0, 'P'},  // 傷害(harm)藥水
 };
-
 
 // ---------------------------------------------------------------------------------------------------------------------------
 
@@ -50,11 +49,16 @@ Entity entity[MAX_ENTITIES];
 // player's backpack
 Backpack backpack;
 
-enum {MAP, BATTLE, SHOP, BACKPACK} GameMode;
+enum
+{
+    MAP,
+    BATTLE,
+    SHOP,
+    BACKPACK
+} GameMode;
 
 // 暫時的屬性加成數值(使用武器時會用到)
-int temp_bonus[5] = {0,0,0,0,0}; // attack, defense, dodge_rate, crit_rate, Harm
-
+int temp_bonus[5] = {0, 0, 0, 0, 0}; // attack, defense, dodge_rate, crit_rate, Harm
 
 // map
 char map[MAP_HEIGHT][MAP_WIDTH];
@@ -94,7 +98,7 @@ int main()
     // 初始化背包
     initialize_Backpack();
 
-    /* 
+    /*
         以下測試背包輸出功能，可以先不管
     */
     backpack.gold = 100;
@@ -104,7 +108,7 @@ int main()
     backpack.items[2] = item_db[2];
     backpack.items[3] = item_db[3];
     backpack.items[4] = item_db[4];
-    /* 
+    /*
         以上測試背包輸出功能，可以先不管
     */
 
@@ -126,12 +130,13 @@ int main()
 
     // 地圖模式主迴圈
     while (entity[0].is_alive == 1)
-    {   
+    {
         GameMode = MAP;
         char nextAction; // the upcoming action
-        
+
         scanf("%c", &nextAction);
-        if(nextAction == '\n'){
+        if (nextAction == '\n')
+        {
             print_action_prompt();
             continue; // avoid enter key input
         }
@@ -159,7 +164,7 @@ int main()
             GameMode = SHOP;
             Shop_Mode();
             break;
-        
+
         case 'B':
             // 進入Boss戰鬥模式
             printf("You have encountered the BOSS!\n");
@@ -170,8 +175,6 @@ int main()
         refresh_map();
     }
     printf("You're DEAD.\n");
-
-
 
     /*
     以下code是為了測試player backpack與heap sort能夠正常使用，可以先不管
@@ -218,19 +221,16 @@ void print_action_prompt()
         return;
     case BATTLE:
         return;
-        
-    
+
     case SHOP:
 
     case BACKPACK:
-        printf("Select an item to use (enter negative number to exit): ");
+        printf("Enter an item index to use (enter anything else to exit): ");
         return;
 
     default:
         return;
     }
-        
-    
 }
 
 // 印出地圖
@@ -249,9 +249,9 @@ void print_map()
     }
 }
 
-
 // 初始化玩家屬性
-void initialize_Player(){
+void initialize_Player()
+{
     entity[0].id = 0;
     entity[0].hp = entity[0].max_hp = 100;
     entity[0].atk = 20;
@@ -265,14 +265,15 @@ void initialize_Player(){
 }
 
 // 初始化背包
-void initialize_Backpack(){
+void initialize_Backpack()
+{
     backpack.item_count = 0;
     backpack.gold = 0;
-    for(int i=0; i<4; i++){
+    for (int i = 0; i < 4; i++)
+    {
         backpack.armor_slots[i].id = -1; // 代表該盔甲欄位沒有裝備
     }
 }
-
 
 // 設定敵人屬性
 void setupEnemy(int i)
@@ -295,14 +296,11 @@ void setupEnemy(int i)
            i, entity[i].name, entity[i].hp, entity[i].atk, entity[i].speed);
 }
 
-
 // 處理攻擊時的過程
 void execute_attack(Entity *player, Entity *enemy)
 {
     if (!player->is_alive || !enemy->is_alive)
         return; // if one of the entity is not alive anymore, don't do anything
-
-    
 
     int dmg = player->atk;
     /* TODO: before calling attack function and calculations, we need to ask player to defend or attack, and add randomized choice for enemies too
@@ -320,13 +318,13 @@ int roll_defend()
     // TODO: if percent == 100, we need to give entity some awards, for example healing or attack bonus
     int percent = rand() % 100;
     if (percent >= 50)
-        return 0;  // 完美格檔 (受傷 0%)
+        return 0; // 完美格檔 (受傷 0%)
     if (percent >= 25)
         return 50; // 成功格檔 (受傷 50%)
     if (percent >= 10)
         return 80; // 輕微格檔 (受傷 80%)
-        
-    return 100;    // 格檔失敗 (受傷 100%)
+
+    return 100; // 格檔失敗 (受傷 100%)
     /*
     if entity called defend, we roll the dice:
         if the dice is between 50~100, defend successfully
@@ -358,7 +356,11 @@ int roll_defend()
 void Battle_Mode(Entity *player, Entity *enemy)
 {
     printf("╭∩╮( ͡⚆ ͜ʖ ͡⚆)╭∩╮    VS.    %s!\n", enemy->name);
-    enum { PLAYER, ENEMY } turn; // 我方 or 敵方回合
+    enum
+    {
+        PLAYER,
+        ENEMY
+    } turn; // 我方 or 敵方回合
     // TODO: 戰鬥的前置作業(例如: 計算攻擊順序、計算雙方屬性加成、選四個物品進入戰鬥等等)
 
     // 進入戰鬥主迴圈
@@ -386,15 +388,15 @@ void Battle_Mode(Entity *player, Entity *enemy)
 
 // 進入商店模式
 void Shop_Mode()
-{   
+{
     // TODO: 隨機抽取四個物品供玩家選購、處理購買流程
     printf("Welcome to the shop!\n");
     Item shop_items[4];
     int selected_indices[4] = {-1, -1, -1, -1};
-    
+
     /*  商店範例輸出:
         Welcome to the shop!
-        =================== Shop ===================    
+        =================== Shop ===================
         Gold: 100
         (0) Items_name: $10 | (物品功能介紹)
         (1) Items_name: $20 | (物品功能介紹)
@@ -415,24 +417,36 @@ void Backpack_Mode()
         5. 移除已使用的物品或更新數量
     */
     int backpack_index;
-    while(1){
+    while (1)
+    {
         print_backpack();
         print_action_prompt();
-        scanf("%d", &backpack_index);
-        if(backpack_index < 0){
+
+        if (scanf("%d", &backpack_index) != 1)
+        {
+            printf("Invalid input. Please enter a number.\n");
+            while (getchar() != '\n')
+                ;     // 清掉 buffer 裡的垃圾字元
+            continue; // 回到 while(1) 重新來
+        }
+
+        if (backpack_index < 0)
+        {
             printf("Leave your backpack.\n");
             return;
         }
-        else if(backpack_index >= backpack.item_count){
+        else if (backpack_index >= backpack.item_count)
+        {
             printf("There are no items in this backpack slot.\n");
         }
-        else if(backpack.items[backpack_index].can_be_used_in_map == 1){
+        else if (backpack.items[backpack_index].can_be_used_in_map == 1)
+        {
             use_item(&backpack.items[backpack_index], backpack_index);
         }
-        else{
+        else
+        {
             printf("This item cannot be used in map mode.\n");
         }
-
     }
 }
 
@@ -441,14 +455,14 @@ void print_backpack()
 {
     printf("================== Backpack ==================\n");
     printf("Gold: %d\n", backpack.gold);
-    printf("Armor_slots: [%s] [%s] [%s] [%s]\n", 
+    printf("Armor_slots: [%s] [%s] [%s] [%s]\n",
            backpack.armor_slots[0].id == -1 ? " " : backpack.armor_slots[0].name,
            backpack.armor_slots[1].id == -1 ? " " : backpack.armor_slots[1].name,
            backpack.armor_slots[2].id == -1 ? " " : backpack.armor_slots[2].name,
            backpack.armor_slots[3].id == -1 ? " " : backpack.armor_slots[3].name);
     for (int i = 0; i < backpack.item_count; i++)
-    {   
-        if(backpack.items[i].count > 0)
+    {
+        if (backpack.items[i].count > 0)
             printf("(%d) %s ×%d\n", i, backpack.items[i].name, backpack.items[i].count);
         else
             break;
@@ -502,30 +516,34 @@ void swap_items(int a, int b)
 }
 
 // 減少(刪除)背包中的物品
-void reduce_item(int index){
+void reduce_item(int index)
+{
     /*
         Args: index: 要減少的物品在背包中的索引值
         功能: 物品數量-1，若數量為0則刪除該物品
     */
     backpack.items[index].count--;
-    if(backpack.items[index].count < 1){
+    if (backpack.items[index].count < 1)
+    {
         // 刪除該物品(往前移動覆蓋)
-        for(int i=index; i<backpack.item_count-1; i++){
-            backpack.items[i] = backpack.items[i+1];
+        for (int i = index; i < backpack.item_count - 1; i++)
+        {
+            backpack.items[i] = backpack.items[i + 1];
         }
         backpack.item_count--;
     }
 }
 
 // 使用物品
-void use_item(Item *item, int item_backpack_index){
+void use_item(Item *item, int item_backpack_index)
+{
     /*
         # 兩種 Mode 下使用: Backpack、Battle
         Args:
             *item: 指向要使用的物品 (背包中 or 戰鬥中手持的物品)
         功能:
             根據物品效果更新玩家狀態 or 穿上裝備
-        
+
     TODO:
         1. 判斷物品類型 (例如: Hp_Posion, Pw_Posion, Helmet, 等等)
         2. 根據物品效果更新玩家狀態 or 穿上裝備
@@ -534,27 +552,30 @@ void use_item(Item *item, int item_backpack_index){
     */
 
     // 武器(不減少數量)
-    if(item->type == 'W'){
+    if (item->type == 'W')
+    {
         printf("You use %s to attack.\n", item->name);
-        switch (item->id){
-            case 0: // Sword
-                temp_bonus[0] += 5; // attack +5
-                break;
-            case 1: // Axe
-                temp_bonus[0] += 10; // attack +10
-                temp_bonus[3] += 5;  // crit_rate +5
-                break;
-            case 2: // Bow
-                temp_bonus[0] += 7;  // attack +7
-                break;
-            default:
-                break;
+        switch (item->id)
+        {
+        case 0:                 // Sword
+            temp_bonus[0] += 5; // attack +5
+            break;
+        case 1:                  // Axe
+            temp_bonus[0] += 10; // attack +10
+            temp_bonus[3] += 5;  // crit_rate +5
+            break;
+        case 2:                 // Bow
+            temp_bonus[0] += 7; // attack +7
+            break;
+        default:
+            break;
         }
         return;
     }
 
     // 防具(放到盔甲欄位)
-    if(item->type == 'A'){
+    if (item->type == 'A')
+    {
         printf("You put on %s.\n", item->name);
         Put_on_Armor(item, item_backpack_index);
         printf("You put on %d.\n", entity[0].hp);
@@ -562,34 +583,36 @@ void use_item(Item *item, int item_backpack_index){
     }
 
     // 藥水(減少數量)
-    if(item->type == 'P'){
-        switch (item->id){
-            case 7: // Hp_Posion
-                entity[0].hp += 30;
-                if(entity[0].hp > entity[0].max_hp)
-                    entity[0].hp = entity[0].max_hp;
-                printf("You used %s. HP +10.\n", item->name);
-                printf("Current HP: %d/%d\n", entity[0].hp, entity[0].max_hp);
-                break;
-            case 8: // Pw_Posion
-                entity[0].crit_rate += 5; // crit_rate +5
-                printf("You used %s. CRI +5.\n", item->name);
-                break;
-            case 9: // Hm_Posion
-                temp_bonus[4] += 20; // HARM +20
-                printf("You used %s.\n", item->name);
-                break;
-            default:
-                break;
+    if (item->type == 'P')
+    {
+        switch (item->id)
+        {
+        case 7: // Hp_Posion
+            entity[0].hp += 30;
+            if (entity[0].hp > entity[0].max_hp)
+                entity[0].hp = entity[0].max_hp;
+            printf("You used %s. HP +10.\n", item->name);
+            printf("Current HP: %d/%d\n", entity[0].hp, entity[0].max_hp);
+            break;
+        case 8:                       // Pw_Posion
+            entity[0].crit_rate += 5; // crit_rate +5
+            printf("You used %s. CRI +5.\n", item->name);
+            break;
+        case 9:                  // Hm_Posion
+            temp_bonus[4] += 20; // HARM +20
+            printf("You used %s.\n", item->name);
+            break;
+        default:
+            break;
         }
         reduce_item(item_backpack_index);
         return;
     }
-    
 }
 
 // 穿上裝備
-void Put_on_Armor(Item *armor, int item_backpack_index){
+void Put_on_Armor(Item *armor, int item_backpack_index)
+{
     /*
         Args: armor: 要穿上的裝備
         功能: 根據裝備類型放到對應的盔甲欄位 (若對應盔甲欄已有裝備，直接替換)
@@ -598,13 +621,15 @@ void Put_on_Armor(Item *armor, int item_backpack_index){
 
     int slot = armor->id - 3; // 將 id 調整為 0~3 方便 switch 判斷
 
-    if (backpack.armor_slots[slot].count <= 0) {
+    if (backpack.armor_slots[slot].count <= 0)
+    {
         // 該欄位沒有裝備，直接放入
         backpack.armor_slots[slot] = *armor;
         reduce_item(item_backpack_index);
         return;
     }
-    else {
+    else
+    {
         // 該欄位已有裝備，先卸下再放入
         Item old_armor = backpack.armor_slots[slot];
         backpack.armor_slots[slot] = *armor;
@@ -612,7 +637,6 @@ void Put_on_Armor(Item *armor, int item_backpack_index){
         backpack.items[item_backpack_index] = old_armor;
         return;
     }
-
 }
 
 // Max Heap, sort by id
@@ -631,12 +655,11 @@ void heapify_item(Item arr[], int size, int i)
     }
 }
 
-
 // 初始化地圖
 void initialize_map(int enemies_count)
 {
     /*
-        Args: 
+        Args:
             enemies_count: 敵人數量
         功能:
             map生成 空地('.')、牆('#')、boss('B')、player('P') ; 隨機生成 enemy('M')、shop('$')
@@ -664,7 +687,7 @@ void initialize_map(int enemies_count)
     map[1][1] = 'B';
 
     // 生成敵人'M'
-    for (int i = 1; i <= enemies_count; i++)    // 從 id=1 開始 (0 是玩家)
+    for (int i = 1; i <= enemies_count; i++) // 從 id=1 開始 (0 是玩家)
     {
         int rand_x, rand_y; // 存隨機出來的數值
         int attempts = 0;   // 防止無限迴圈的保險機制
@@ -737,7 +760,6 @@ void action_map(char nextAction, Entity *player)
     }
 }
 
-
 // 更新+印出地圖
 void refresh_map()
 {
@@ -755,8 +777,6 @@ void refresh_map()
 
     print_map();
 }
-
-
 
 // ---------------------------------------------------------------------------------------------------------------------------
 
