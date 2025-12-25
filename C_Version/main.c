@@ -36,9 +36,9 @@ const Item item_db[] = {
     {4, "Chestplace", 20, 1, 1, 'A'}, // 胸甲: map模式可穿上
     {5, "Leggings", 13, 1, 1, 'A'},   // 護腿: map模式可穿上
     {6, "Boost", 8, 1, 1, 'A'},       // 靴子: map模式可穿上
-    {7, "Hp_Posion", 10, 1, 1, 'P'},  // 生命(health point)藥水: map模式可喝
-    {8, "Pw_Posion", 10, 1, 1, 'P'},  // 力量(power)藥水: map模式可喝
-    {9, "Hm_Posion", 15, 1, 0, 'P'},  // 傷害(harm)藥水
+    {7, "Hp_Potion", 10, 1, 1, 'P'},  // 生命(health point)藥水: map模式可喝
+    {8, "Pw_Potion", 10, 1, 1, 'P'},  // 力量(power)藥水: map模式可喝
+    {9, "Hm_Potion", 15, 1, 0, 'P'},  // 傷害(harm)藥水
 };
 
 // ---------------------------------------------------------------------------------------------------------------------------
@@ -398,7 +398,7 @@ void Battle_Mode(Entity *player, Entity *enemy)
             if (def_rate != 0)
             {
                 if (def_rate != 100)
-                    printf("You defend enemy's attack by %d percent.\n", def_rate);
+                    printf("You defended enemy's attack by %d percent.\n", def_rate);
                 execute_attack(enemy, player, def_rate);
             }
             else
@@ -449,7 +449,7 @@ void Shop_Mode()
     // TODO: 隨機抽取四個物品供玩家選購、處理購買流程
     printf("Welcome to the shop! To leave shop, enter -1\n");
     Item shop_items[4];
-    int selected_indices[4] = {-1, -1, -1, -1}; //-1 還沒賣掉：0賣掉了
+    int selected_indices[4] = {1, 1, 1, 1}; // 1 還沒賣掉：0賣掉了
     printf("======================= Shop =======================\n");
     for (int i = 0; i < 4; i++)
     {
@@ -477,39 +477,33 @@ void Shop_Mode()
             return;
         }
 
+        if (selected_indices[buying_index] == 0)
+        {
+            printf("This item is SOLD OUT !\n");
+            continue;
+        } // check if this item is sold out
+        else if (backpack.gold - shop_items[buying_index].cost < 0)
+        {
+            printf("You're too poor to buy this.\n");
+            continue;
+        } // check if player has enough gold
+
         for (int i = 0; i < backpack.item_count; i++)
         {
             if (shop_items[buying_index].id == backpack.items[i].id)
             {
-                if (backpack.gold - shop_items[buying_index].cost < 0)
-                {
-                    printf("You're too poor to buy this.\n");
-                    break;
-                }
-                else
-                {
-                    backpack.items[i].count += 1;
-                    backpack.gold -= shop_items[buying_index].cost;
-                    selected_indices[buying_index] = 0; // mark this item is sold
-                }
+                backpack.items[i].count += 1;
+                backpack.gold -= shop_items[buying_index].cost;
+                selected_indices[buying_index] = 0; // mark this item is sold
 
                 break;
-            }
+            } // if the item is already in backpack, just increase count
             else if (i == backpack.item_count - 1)
             {
-                if (backpack.gold - shop_items[buying_index].cost < 0)
-                {
-                    printf("You're too poor to buy this.\n");
-                    break;
-                }
-                else
-                {
-                    backpack.item_count += 1;
-
-                    backpack.items[backpack.item_count] = shop_items[buying_index];
-                    backpack.gold -= shop_items[buying_index].cost;
-                    selected_indices[buying_index] = 0; // mark this item is sold
-                }
+                backpack.items[backpack.item_count] = shop_items[buying_index];
+                backpack.item_count += 1;
+                backpack.gold -= shop_items[buying_index].cost;
+                selected_indices[buying_index] = 0; // mark this item is sold
 
                 break;
             }
@@ -518,7 +512,7 @@ void Shop_Mode()
 
         for (int i = 0; i < 4; i++)
         {
-            if (selected_indices[i] == -1)
+            if (selected_indices[i] == 1) // 1表示還沒賣掉
             {
                 printf("(%d) %s: $%d | (物品功能介紹)\n", i, shop_items[i].name, shop_items[i].cost);
             }
