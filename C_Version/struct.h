@@ -69,32 +69,32 @@ typedef struct
     // TODO: add more usages for gold
 } Backpack; // player's backpack
 
-
-
 void initialize_map(int enemies_count); // 初始化地圖
 void initialize_Player();               // 初始化玩家屬性
 void initialize_Backpack();             // 初始化背包
 void setupEnemy(int i);                 // 設定敵人屬性
 
-void print_map();                 // 印出地圖
-void refresh_map();               // 更新+印出地圖
-void print_action_prompt();       // 印出玩家行動提示
-void print_backpack();            // 輸出所有背包物品
+void print_map(); // 印出地圖
+void refresh_map();
+void action_in_map(char nextAction, Entity *player); // 玩家在地圖模式的行動
+// 更新+印出地圖
+void print_action_prompt();                              // 印出玩家行動提示
+void print_backpack();                                   // 輸出所有背包物品
+void Backpack_Mode();                                    // 進入背包模式
+void Put_on_Armor(Item *armor, int item_backpack_index); // 穿上裝備
+void use_item(Item *item, int item_backpack_index);      // 使用物品
 
-void action_map(char nextAction, Entity *player);         // 玩家在地圖模式的行動
+void Battle_Mode(Entity *player, Entity *enemy);                     // 進入對戰模式
 void execute_attack(Entity *entity1, Entity *entity2, int def_rate); // 處理攻擊時的過程
 int is_valid_action_in_battle_mode(char c);
 int roll_defend(); // 骰防禦比例
 
-void use_item(Item *item, int item_backpack_index); // 使用物品
-void Put_on_Armor(Item *armor, int item_backpack_index); // 穿上裝備 
+void Shop_Mode();                                                 // 進入商店模式
+void print_shop_items(Item shop_items[], int selected_indices[]); // 輸出商店物品
 
 // backpack heap sort
 void sort_backpack();
 void swap_items(int a, int b);
 void heapify_item(Item arr[], int size, int i);
 
-void Battle_Mode(Entity *player, Entity *enemy); // 進入對戰模式
-void Shop_Mode();                                // 進入商店模式
-void Backpack_Mode();                            // 進入背包模式
 #endif

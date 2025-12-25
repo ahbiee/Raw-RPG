@@ -70,7 +70,7 @@ int main()
     int enemy_count = rand() % 6 + 10; // randomly encounter 10~15 enemies, the player will fight them one by one
     int total_count = enemy_count + 1; // entity[0] is player
 
-    printf("==========================================\n");
+    printf("====================================================\n");
     printf("Welcome to Raw RPG\n");
     printf("Enter your name (accept spaces, limit 23 characters): ");
     if (fgets(entity[0].name, sizeof(entity[0].name), stdin) != NULL)
@@ -109,17 +109,16 @@ int main()
     backpack.items[3] = item_db[3];
     backpack.items[4] = item_db[4];
     /*
-        以上測試背包輸出功能，可以先不管
+        以上測試背包輸出功能，可以先不管𓃭
     */
-
     // 設定所有敵人屬性
-    printf("==========================================\n");
+    printf("====================================================\n");
     printf("Enemy list (10~15) for this game :\n");
     for (int i = 1; i <= enemy_count; ++i)
     {
         setupEnemy(i);
     }
-    printf("==========================================\n");
+    printf("====================================================\n");
 
     // 初始化地圖
     initialize_map(enemy_count);
@@ -217,6 +216,8 @@ void print_action_prompt()
         printf("A: move left\n");
         printf("D: move right\n");
         printf("E: open backpack\n");
+
+        printf("====================================================\n");
         printf("The action you're going to make is: ");
         return;
     case BATTLE:
@@ -447,7 +448,7 @@ int is_valid_action_in_battle_mode(char c)
 void Shop_Mode()
 {
     // TODO: 隨機抽取四個物品供玩家選購、處理購買流程
-    printf("Welcome to the shop! To leave shop, enter -1\n");
+    printf("\nWelcome to the shop! To leave shop, enter -1!\n");
     Item shop_items[4];
     int selected_indices[4] = {1, 1, 1, 1}; // 1 還沒賣掉：0賣掉了
     printf("======================= Shop =======================\n");
@@ -463,6 +464,7 @@ void Shop_Mode()
     while (1)
     {
         printf("Your gold: %d\n", backpack.gold);
+        printf("====================================================\n");
         printf("The item you want: ");
         if (scanf("%d", &buying_index) != 1 || buying_index > 3 || buying_index < -1)
         {
@@ -471,20 +473,27 @@ void Shop_Mode()
                 ;     // 清掉 buffer 裡的垃圾字元
             continue; // 回到 while(1) 重新來
         } // this loop make sure input is valid not out of
+        printf("====================================================\n");
         if (buying_index == -1)
         {
             printf("Leave the shop.\n");
+
             return;
         }
 
         if (selected_indices[buying_index] == 0)
         {
             printf("This item is SOLD OUT !\n");
+            printf("----------------------------------------------------\n");
+            print_shop_items(shop_items, selected_indices);
+
             continue;
         } // check if this item is sold out
         else if (backpack.gold - shop_items[buying_index].cost < 0)
         {
             printf("You're too poor to buy this.\n");
+            printf("----------------------------------------------------\n");
+            print_shop_items(shop_items, selected_indices);
             continue;
         } // check if player has enough gold
 
@@ -510,26 +519,21 @@ void Shop_Mode()
 
         } // add the item to backpack
 
-        for (int i = 0; i < 4; i++)
-        {
-            if (selected_indices[i] == 1) // 1表示還沒賣掉
-            {
-                printf("(%d) %s: $%d | (物品功能介紹)\n", i, shop_items[i].name, shop_items[i].cost);
-            }
-            else
-                printf("(%d) SOLD OUT !\n", i);
-        } // showing what items are for sale
+        print_shop_items(shop_items, selected_indices); // showing what items are for sale
     }
-
-    /*  商店範例輸出:
-        Welcome to the shop!
-        =================== Shop ===================
-        Gold: 100
-        (0) Items_name: $10 | (物品功能介紹)
-        (1) Items_name: $20 | (物品功能介紹)
-        (2) Items_name: $30 | (物品功能介紹)
-        (3) Items_name: $40 | (物品功能介紹)
-    */
+}
+// 輸出商店物品
+void print_shop_items(Item shop_items[], int selected_indices[])
+{
+    for (int i = 0; i < 4; i++)
+    {
+        if (selected_indices[i] == 1) // 1表示還沒賣掉
+        {
+            printf("(%d) %s: $%d | (物品功能介紹)\n", i, shop_items[i].name, shop_items[i].cost);
+        }
+        else
+            printf("(%d) SOLD OUT !\n", i);
+    }
 }
 
 // 進入背包介面
@@ -859,7 +863,7 @@ void initialize_map(int enemies_count)
 }
 
 // 玩家在地圖模式的行動
-void action_map(char nextAction, Entity *player)
+void action_in_map(char nextAction, Entity *player)
 {
     /*
         Args:
