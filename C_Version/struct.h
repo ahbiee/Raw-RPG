@@ -82,8 +82,8 @@ void print_action_prompt();       // 印出玩家行動提示
 void print_backpack();            // 輸出所有背包物品
 
 void action_map(char nextAction, Entity *player);         // 玩家在地圖模式的行動
-void execute_attack(Entity *player, Entity *entity2); // 處理攻擊時的過程
-
+void execute_attack(Entity *entity1, Entity *entity2, int def_rate); // 處理攻擊時的過程
+int is_valid_action_in_battle_mode(char c);
 int roll_defend(); // 骰防禦比例
 
 void use_item(Item *item, int item_backpack_index); // 使用物品

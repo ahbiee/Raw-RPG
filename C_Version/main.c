@@ -18,13 +18,13 @@ Author:
 #include "struct.h"
 
 const Entity enemy_db[] = {
-    // name, id, hp, maxhp, atk, speed, dodge_rate, crit_rate, is_alive, pos_x, pos_y
-    {"", -1, -1, -1, -1, -1, -1, -1, -1, 1, -1},     // type 0 是 placeholder, 不應該存取到這
-    {"Slime", -1, 20, 20, 3, 4, 0, 0, 1, -1, -1},    // type 1 是 Slime
-    {"Skeleton", -1, 15, 15, 8, 7, 5, 5, 1, -1, -1}, // type 2 是 Skeleton
-    {"Zombie", -1, 40, 40, 5, 2, 1, 1, 1, -1, -1},   // type 3 是 Zombie
-    {"Goblin", -1, 30, 30, 6, 6, 3, 3, 1, -1, -1},   // type 4 是 Goblin
-    {"Ghost", -1, 5, 5, 15, 10, 30, 10, 1, -1, -1}   // type 5 是 Ghost
+    // name, id, hp, maxhp, atk, speed, dodge_rate, crit_rate, is_alive, pos_x, pos_y, type
+    {"", -1, -1, -1, -1, -1, -1, -1, -1, 1, -1, 'E'},     // type 0 是 placeholder, 不應該存取到這
+    {"Slime", -1, 20, 20, 3, 4, 0, 0, 1, -1, -1, 'E'},    // type 1 是 Slime
+    {"Skeleton", -1, 15, 15, 8, 7, 5, 5, 1, -1, -1, 'E'}, // type 2 是 Skeleton
+    {"Zombie", -1, 40, 40, 5, 2, 1, 1, 1, -1, -1, 'E'},   // type 3 是 Zombie
+    {"Goblin", -1, 30, 30, 6, 6, 3, 3, 1, -1, -1, 'E'},   // type 4 是 Goblin
+    {"Ghost", -1, 5, 5, 15, 10, 30, 10, 1, -1, -1, 'E'}   // type 5 是 Ghost
 };
 
 const Item item_db[] = {
@@ -84,8 +84,7 @@ int main()
         else
         {
             int c;
-            while ((c = getchar()) != '\n' && c != EOF)
-                ; // clear buffer
+            while ((c = getchar()) != '\n' && c != EOF); // clear buffer
             // we don't need to manually replace the last character to '\n', it's automaticly done by fgets
         }
     }
@@ -180,11 +179,11 @@ int main()
     以下code是為了測試player backpack與heap sort能夠正常使用，可以先不管
     */
     backpack.item_count = 5;
-    backpack.items[0] = (Item){5, "Potion", 10, 1, 1};
-    backpack.items[1] = (Item){1, "Sword", 100, 1, 0};
-    backpack.items[2] = (Item){3, "Key", 50, 1, 0};
-    backpack.items[3] = (Item){4, "Shield", 80, 1, 0};
-    backpack.items[4] = (Item){2, "Map", 5, 1, 1};
+    backpack.items[0] = (Item){5, "Potion", 10, 1, 1, 'P'};
+    backpack.items[1] = (Item){1, "Sword", 100, 1, 0, 'W'};
+    backpack.items[2] = (Item){3, "Key", 50, 1, 0, 'W'};
+    backpack.items[3] = (Item){4, "Shield", 80, 1, 0, 'A'};
+    backpack.items[4] = (Item){2, "Map", 5, 1, 1, 'W'};
     backpack.gold = 0;
 
     printf("ID sequence before heap sort: ");
@@ -217,15 +216,21 @@ void print_action_prompt()
         printf("A: move left\n");
         printf("D: move right\n");
         printf("E: open backpack\n");
-        printf("The action your going to make is:");
+        printf("The action you're going to make is: ");
         return;
     case BATTLE:
+        printf("Choose your action:\n");
+        printf("A: attack\n");
+        printf("D: defend\n");
+        printf("I: check and use item\n");
+        printf("The action you're going to make is: ");
         return;
 
     case SHOP:
+        return;
 
     case BACKPACK:
-        printf("Enter an item index to use (enter anything else to exit): ");
+        printf("Enter an item index to use (enter anything, -1 to exit): ");
         return;
 
     default:
@@ -297,19 +302,18 @@ void setupEnemy(int i)
 }
 
 // 處理攻擊時的過程
-void execute_attack(Entity *player, Entity *enemy)
+void execute_attack(Entity *entity1, Entity *entity2, int def_rate)
 {
-    if (!player->is_alive || !enemy->is_alive)
+    if (!entity1->is_alive || !entity2->is_alive)
         return; // if one of the entity is not alive anymore, don't do anything
 
-    int dmg = player->atk;
-    /* TODO: before calling attack function and calculations, we need to ask player to defend or attack, and add randomized choice for enemies too
-        for example:
-        e1 attack, e2 defend -> e2 roll dice to check how many % to defend, then receive the damage from e1
-        e1 defend, e2 attack -> reverse from the previous
-        e1 attack, e2 attack -> the one with higher speed will attack first, then check status. if one is dead then return
-        e1 defend, e2 defend -> both roll the dice and check if there are awards
-    */
+    int dmg = entity1->atk;
+    dmg = (dmg * def_rate) / 100;
+    int newhp = entity2->hp-dmg;
+    printf("%s dealt %d damage to %s (HP: %d -> %d)\n", entity1->name, dmg, entity2->name, entity2->hp, newhp);
+    entity2->hp = newhp;
+    if(entity2->hp < 0) entity2->hp = 0;
+    if(entity2->hp == 0) entity2->is_alive = 0;
 }
 
 // 骰防禦比例
@@ -325,17 +329,48 @@ int roll_defend()
         return 80; // 輕微格檔 (受傷 80%)
 
     return 100; // 格檔失敗 (受傷 100%)
-    /*
-    if entity called defend, we roll the dice:
-        if the dice is between 50~100, defend successfully
-        between 25~50, defend half of the damage
-        between 10~25, defend 20% of the damage
-        below 10, defend unsuccessful
+}
 
-    the function call will be like:
-        int def = defend();
-        attack_damage = (attack_damage * def) / 100;
-        switch(def){
+// 進入戰鬥模式
+void Battle_Mode(Entity *player, Entity *enemy)
+{
+    printf("\n\n\n\n\n╭∩╮( ͡⚆ ͜ʖ ͡⚆)╭∩╮    VS.    %s!\n", enemy->name);
+
+    // TODO: 戰鬥的前置作業(例如: 計算雙方屬性加成、選四個物品進入戰鬥等等)
+    // 如果player速度 >= 敵人速度，player先
+    int player_first = player->speed >= enemy->speed ? 1 : 0;
+    char nextAction = 0; // the upcoming action
+    int backpack_index = -1;
+
+    while (player->is_alive && enemy->is_alive){
+        // 1. show current status
+        printf("==============CURRENT STATUS=============\n");
+        printf("PLAYER (%s):\n\tHP: %3d/%3d    ATK: %3d     SPD: %2d\n", player->name, player->hp, player->max_hp, player->atk, player->speed);
+        printf("ENEMY (%s):\n\tHP: %3d/%3d    ATK: %3d     SPD: %2d\n", enemy->name, enemy->hp, enemy->max_hp, enemy->atk, enemy->speed);
+        printf("==========================================\n");
+
+        // 2. asking attack or defend or use item
+
+        do{
+            print_action_prompt();
+            scanf(" %c", &nextAction);
+        }while(is_valid_action_in_battle_mode(nextAction) == 0);
+
+        // 3. calculate corresponding choices
+        puts("");
+        if(nextAction == 'A'){
+            if(player_first){
+                execute_attack(player, enemy, 100);
+                execute_attack(enemy, player, 100);
+            }
+            else{
+                execute_attack(enemy, player, 100);
+                execute_attack(player, enemy, 100);
+            }
+        }
+        else if(nextAction == 'D'){
+            int def_rate = roll_defend();
+            switch(def_rate){
             case 0:
                 printf("perfect defend\n");
                 break;
@@ -348,42 +383,45 @@ int roll_defend()
             case 100:
                 printf("defend unsuccessfully\n");
                 break;
+            }
+            // 如果不是完美防禦，執行敵人的攻擊並扣除對應防禦比例
+            if(def_rate != 0){
+                if(def_rate != 100) printf("You defend enemy's attack by %d\%", def_rate);
+                execute_attack(enemy, player, def_rate);
+            }
+            else{
+                // 如果骰到完美防禦，給予回復當前血量1.2倍的獎勵(20hp -> 24hp, 50hp -> 60hp)
+                printf("You got no damage and healed 1.2* of your health. (HP: %d -> %d)\n", player->hp, (player->hp*1.2 > player->max_hp ? player->max_hp : (int)(player->hp*1.2)));
+                player->hp = (player->hp*1.2 > player->max_hp ? player->max_hp : player->hp*1.2);
+            }
         }
-*/
+        else if(nextAction == 'I'){
+            while(1){
+                print_backpack();
+                printf("Enter an item index to use (enter anything, -1 to exit): ");
+                scanf("%d", &backpack_index);
+                if (backpack_index < 0)
+                {
+                    printf("Leave your backpack.\n");
+                    break;
+                }
+                else if (backpack_index >= backpack.item_count) printf("There are no items in this backpack slot.\n");
+                else{
+                    use_item(&backpack.items[backpack_index], backpack_index);
+                    break;
+                }
+            }
+        }
+    }
+    printf("==============Battle Finished=============\n");
+    printf("PLAYER (%s):\n\tHP: %3d/%3d    ATK: %3d     SPD: %2d\n", player->name, player->hp, player->max_hp, player->atk, player->speed);
+    printf("ENEMY (%s):\n\tHP: %3d/%3d    ATK: %3d     SPD: %2d\n", enemy->name, enemy->hp, enemy->max_hp, enemy->atk, enemy->speed);
+    printf("==========================================\n\n\n\n\n\n");
 }
 
-// 進入戰鬥模式
-void Battle_Mode(Entity *player, Entity *enemy)
-{
-    printf("╭∩╮( ͡⚆ ͜ʖ ͡⚆)╭∩╮    VS.    %s!\n", enemy->name);
-    enum
-    {
-        PLAYER,
-        ENEMY
-    } turn; // 我方 or 敵方回合
-    // TODO: 戰鬥的前置作業(例如: 計算攻擊順序、計算雙方屬性加成、選四個物品進入戰鬥等等)
-
-    // 進入戰鬥主迴圈
-    // while (player->is_alive == 1 && enemy->is_alive == 1)
-    // ...
-
-    /* 每回合流程:
-
-    1. we need to print
-    ==============CURRENT STATUS==============
-    PLAYER:
-        HP: xxx/max    ATK: xxx     SPD:xxx
-
-    ENEMY:
-        HP: xxx/max    ATK: xxx     SPD:xxx
-    ==========================================
-
-    2. asking attack or defend or use item
-
-    3. calculate corresponding choices
-
-    4. check entity status
-    */
+int is_valid_action_in_battle_mode(char c){
+    if(c == 'A' || c == 'D' || c == 'I') return 1;
+    return 0;
 }
 
 // 進入商店模式
@@ -425,8 +463,7 @@ void Backpack_Mode()
         if (scanf("%d", &backpack_index) != 1)
         {
             printf("Invalid input. Please enter a number.\n");
-            while (getchar() != '\n')
-                ;     // 清掉 buffer 裡的垃圾字元
+            while (getchar() != '\n'); // 清掉 buffer 裡的垃圾字元
             continue; // 回到 while(1) 重新來
         }
 
@@ -445,7 +482,7 @@ void Backpack_Mode()
         }
         else
         {
-            printf("This item cannot be used in map mode.\n");
+            printf("This item \"%s\" cannot be used in map mode.\n", backpack.items[backpack_index].name);
         }
     }
 }
@@ -578,16 +615,22 @@ void use_item(Item *item, int item_backpack_index)
     {
         printf("You put on %s.\n", item->name);
         Put_on_Armor(item, item_backpack_index);
-        printf("You put on %d.\n", entity[0].hp);
+        printf("Your current hp: %d.\n", entity[0].hp);
         return;
     }
 
     // 藥水(減少數量)
     if (item->type == 'P')
     {
+        int used = 1;
         switch (item->id)
         {
         case 7: // Hp_Posion
+            if(entity[0].hp == entity[0].max_hp){
+                printf("You cannot use heal potion when full hp.\n");
+                used = 0;
+                break;
+            }
             entity[0].hp += 30;
             if (entity[0].hp > entity[0].max_hp)
                 entity[0].hp = entity[0].max_hp;
@@ -605,7 +648,7 @@ void use_item(Item *item, int item_backpack_index)
         default:
             break;
         }
-        reduce_item(item_backpack_index);
+        if(used) reduce_item(item_backpack_index);
         return;
     }
 }
