@@ -24,8 +24,10 @@ const Entity enemy_db[] = {
     {"Skeleton", -1, 15, 15, 8, 7, 5, 5, 1, -1, -1, 'E'}, // type 2 是 Skeleton
     {"Zombie", -1, 40, 40, 5, 2, 1, 1, 1, -1, -1, 'E'},   // type 3 是 Zombie
     {"Goblin", -1, 30, 30, 6, 6, 3, 3, 1, -1, -1, 'E'},   // type 4 是 Goblin
-    {"Ghost", -1, 5, 5, 15, 10, 30, 10, 1, -1, -1, 'E'}   // type 5 是 Ghost
+    {"Ghost", -1, 5, 5, 15, 10, 30, 10, 1, -1, -1, 'E'},  // type 5 是 Ghost
+
 };
+const Entity boss = {"Lion King", -1, 100, 100, 20, 8, 5, 5, 1, 1, 1, 'B'};
 
 const Item item_db[] = {
     //  id, name, cost, count, can_be_used_in_map, type
@@ -39,6 +41,7 @@ const Item item_db[] = {
     {7, "Hp_Potion", 10, 1, 1, 'P'},  // 生命(health point)藥水: map模式可喝
     {8, "Pw_Potion", 10, 1, 1, 'P'},  // 力量(power)藥水: map模式可喝
     {9, "Hm_Potion", 15, 1, 0, 'P'},  // 傷害(harm)藥水
+
 };
 
 // ---------------------------------------------------------------------------------------------------------------------------
@@ -139,7 +142,7 @@ int main()
             print_action_prompt();
             continue; // avoid enter key input
         }
-        action_map(nextAction, &entity[0]); // update player position
+        action_in_map(nextAction, &entity[0]); // update player position
 
         switch (map[entity[0].pos_y][entity[0].pos_x])
         {
@@ -167,6 +170,8 @@ int main()
         case 'B':
             // 進入Boss戰鬥模式
             printf("You have encountered the BOSS!\n");
+            GameMode = BATTLE;
+            Battle_Mode(&entity[0], &boss);
 
         default:
             break;
@@ -434,7 +439,20 @@ void Battle_Mode(Entity *player, Entity *enemy)
     printf("==============Battle Finished=============\n");
     printf("PLAYER (%s):\n\tHP: %3d/%3d    ATK: %3d     SPD: %2d\n", player->name, player->hp, player->max_hp, player->atk, player->speed);
     printf("ENEMY (%s):\n\tHP: %3d/%3d    ATK: %3d     SPD: %2d\n", enemy->name, enemy->hp, enemy->max_hp, enemy->atk, enemy->speed);
-    printf("==========================================\n\n\n\n\n\n");
+    printf("==========================================\n");
+    printf("Enter -1 to continue:");
+    while (1)
+    {
+        int exit_battle;
+        if (scanf("%d", &exit_battle) != 1 || exit_battle != -1)
+        {
+            printf("Please enter valid input\n");
+            while (getchar() != '\n')
+                ;     // 清掉 buffer 裡的垃圾字元
+            continue; // 回到 while(1) 重新來
+        }
+        break;
+    }
 }
 
 int is_valid_action_in_battle_mode(char c)
@@ -973,6 +991,21 @@ if(玩家位置==怪物位置）進入戰鬥狀態：
         }
     }
 }
+
+_______________
+|   _________  |
+| ʕ|  _  _ | ʔ|
+|  |   J   |  |
+|  |________|  |
+|______________|
+_______________
+|   _________  |
+| ʕ|  ◕   ◕ | ʔ|
+|  | ＝(ｴ) 彡 |  |有點失敗
+|  |________|  |
+|______________|
+ก็ʕ•͡ᴥ•ʔ ก้
+／/( ◕ )＼
 
 祝大家活著，我說作者
 */
