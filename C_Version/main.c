@@ -84,7 +84,8 @@ int main()
         else
         {
             int c;
-            while ((c = getchar()) != '\n' && c != EOF); // clear buffer
+            while ((c = getchar()) != '\n' && c != EOF)
+                ; // clear buffer
             // we don't need to manually replace the last character to '\n', it's automaticly done by fgets
         }
     }
@@ -309,11 +310,13 @@ void execute_attack(Entity *entity1, Entity *entity2, int def_rate)
 
     int dmg = entity1->atk;
     dmg = (dmg * def_rate) / 100;
-    int newhp = entity2->hp-dmg;
-    if(newhp < 0) newhp = 0;
+    int newhp = entity2->hp - dmg;
+    if (newhp < 0)
+        newhp = 0;
     printf("%s dealt %d damage to %s (HP: %d -> %d)\n", entity1->name, dmg, entity2->name, entity2->hp, newhp);
     entity2->hp = newhp;
-    if(entity2->hp == 0) entity2->is_alive = 0;
+    if (entity2->hp == 0)
+        entity2->is_alive = 0;
 }
 
 // 骰防禦比例
@@ -342,7 +345,8 @@ void Battle_Mode(Entity *player, Entity *enemy)
     char nextAction = 0; // the upcoming action
     int backpack_index = -1;
 
-    while (player->is_alive && enemy->is_alive){
+    while (player->is_alive && enemy->is_alive)
+    {
         // 1. show current status
         printf("==============CURRENT STATUS=============\n");
         printf("PLAYER (%s):\n\tHP: %3d/%3d    ATK: %3d     SPD: %2d\n", player->name, player->hp, player->max_hp, player->atk, player->speed);
@@ -351,26 +355,32 @@ void Battle_Mode(Entity *player, Entity *enemy)
 
         // 2. asking attack or defend or use item
 
-        do{
+        do
+        {
             print_action_prompt();
             scanf(" %c", &nextAction);
-        }while(is_valid_action_in_battle_mode(nextAction) == 0);
+        } while (is_valid_action_in_battle_mode(nextAction) == 0);
 
         // 3. calculate corresponding choices
         puts("");
-        if(nextAction == 'A'){
-            if(player_first){
+        if (nextAction == 'A')
+        {
+            if (player_first)
+            {
                 execute_attack(player, enemy, 100);
                 execute_attack(enemy, player, 100);
             }
-            else{
+            else
+            {
                 execute_attack(enemy, player, 100);
                 execute_attack(player, enemy, 100);
             }
         }
-        else if(nextAction == 'D'){
+        else if (nextAction == 'D')
+        {
             int def_rate = roll_defend();
-            switch(def_rate){
+            switch (def_rate)
+            {
             case 0:
                 printf("perfect defend\n");
                 break;
@@ -385,18 +395,23 @@ void Battle_Mode(Entity *player, Entity *enemy)
                 break;
             }
             // 如果不是完美防禦，執行敵人的攻擊並扣除對應防禦比例
-            if(def_rate != 0){
-                if(def_rate != 100) printf("You defend enemy's attack by %d percent.\n", def_rate);
+            if (def_rate != 0)
+            {
+                if (def_rate != 100)
+                    printf("You defend enemy's attack by %d percent.\n", def_rate);
                 execute_attack(enemy, player, def_rate);
             }
-            else{
+            else
+            {
                 // 如果骰到完美防禦，給予回復當前血量1.2倍的獎勵(20hp -> 24hp, 50hp -> 60hp)
-                printf("You got no damage and healed 1.2* of your health. (HP: %d -> %d)\n", player->hp, (player->hp*1.2 > player->max_hp ? player->max_hp : (int)(player->hp*1.2)));
-                player->hp = (player->hp*1.2 > player->max_hp ? player->max_hp : player->hp*1.2);
+                printf("You got no damage and healed 1.2* of your health. (HP: %d -> %d)\n", player->hp, (player->hp * 1.2 > player->max_hp ? player->max_hp : (int)(player->hp * 1.2)));
+                player->hp = (player->hp * 1.2 > player->max_hp ? player->max_hp : player->hp * 1.2);
             }
         }
-        else if(nextAction == 'I'){
-            while(1){
+        else if (nextAction == 'I')
+        {
+            while (1)
+            {
                 print_backpack();
                 printf("Enter an item index to use (enter anything, -1 to exit): ");
                 scanf("%d", &backpack_index);
@@ -405,8 +420,10 @@ void Battle_Mode(Entity *player, Entity *enemy)
                     printf("Leave your backpack.\n");
                     break;
                 }
-                else if (backpack_index >= backpack.item_count) printf("There are no items in this backpack slot.\n");
-                else{
+                else if (backpack_index >= backpack.item_count)
+                    printf("There are no items in this backpack slot.\n");
+                else
+                {
                     use_item(&backpack.items[backpack_index], backpack_index);
                     break;
                 }
@@ -419,8 +436,10 @@ void Battle_Mode(Entity *player, Entity *enemy)
     printf("==========================================\n\n\n\n\n\n");
 }
 
-int is_valid_action_in_battle_mode(char c){
-    if(c == 'A' || c == 'D' || c == 'I') return 1;
+int is_valid_action_in_battle_mode(char c)
+{
+    if (c == 'A' || c == 'D' || c == 'I')
+        return 1;
     return 0;
 }
 
@@ -428,9 +447,85 @@ int is_valid_action_in_battle_mode(char c){
 void Shop_Mode()
 {
     // TODO: 隨機抽取四個物品供玩家選購、處理購買流程
-    printf("Welcome to the shop!\n");
+    printf("Welcome to the shop! To leave shop, enter -1\n");
     Item shop_items[4];
-    int selected_indices[4] = {-1, -1, -1, -1};
+    int selected_indices[4] = {-1, -1, -1, -1}; //-1 還沒賣掉：0賣掉了
+    printf("======================= Shop =======================\n");
+    for (int i = 0; i < 4; i++)
+    {
+        int rand_index;
+        rand_index = rand() % 9; // 隨機選一個物品
+        shop_items[i] = item_db[rand_index];
+
+        printf("(%d) %s: $%d | (物品功能介紹)\n", i, shop_items[i].name, shop_items[i].cost);
+    } // showing what items are for sale
+    int buying_index; // 玩家想買的物品index
+    while (1)
+    {
+        printf("Your gold: %d\n", backpack.gold);
+        printf("The item you want: ");
+        if (scanf("%d", &buying_index) != 1 || buying_index > 3 || buying_index < -1)
+        {
+            printf("Please enter valid input\n");
+            while (getchar() != '\n')
+                ;     // 清掉 buffer 裡的垃圾字元
+            continue; // 回到 while(1) 重新來
+        } // this loop make sure input is valid not out of
+        if (buying_index == -1)
+        {
+            printf("Leave the shop.\n");
+            return;
+        }
+
+        for (int i = 0; i < backpack.item_count; i++)
+        {
+            if (shop_items[buying_index].id == backpack.items[i].id)
+            {
+                if (backpack.gold - shop_items[buying_index].cost < 0)
+                {
+                    printf("You're too poor to buy this.\n");
+                    break;
+                }
+                else
+                {
+                    backpack.items[i].count += 1;
+                    backpack.gold -= shop_items[buying_index].cost;
+                    selected_indices[buying_index] = 0; // mark this item is sold
+                }
+
+                break;
+            }
+            else if (i == backpack.item_count - 1)
+            {
+                if (backpack.gold - shop_items[buying_index].cost < 0)
+                {
+                    printf("You're too poor to buy this.\n");
+                    break;
+                }
+                else
+                {
+                    backpack.item_count += 1;
+
+                    backpack.items[backpack.item_count] = shop_items[buying_index];
+                    backpack.gold -= shop_items[buying_index].cost;
+                    selected_indices[buying_index] = 0; // mark this item is sold
+                }
+
+                break;
+            }
+
+        } // add the item to backpack
+
+        for (int i = 0; i < 4; i++)
+        {
+            if (selected_indices[i] == -1)
+            {
+                printf("(%d) %s: $%d | (物品功能介紹)\n", i, shop_items[i].name, shop_items[i].cost);
+            }
+            else
+                printf("(%d) SOLD OUT !\n", i);
+        } // showing what items are for sale
+    }
 
     /*  商店範例輸出:
         Welcome to the shop!
@@ -463,7 +558,8 @@ void Backpack_Mode()
         if (scanf("%d", &backpack_index) != 1)
         {
             printf("Invalid input. Please enter a number.\n");
-            while (getchar() != '\n'); // 清掉 buffer 裡的垃圾字元
+            while (getchar() != '\n')
+                ;     // 清掉 buffer 裡的垃圾字元
             continue; // 回到 while(1) 重新來
         }
 
@@ -626,7 +722,8 @@ void use_item(Item *item, int item_backpack_index)
         switch (item->id)
         {
         case 7: // Hp_Posion
-            if(entity[0].hp == entity[0].max_hp){
+            if (entity[0].hp == entity[0].max_hp)
+            {
                 printf("You cannot use heal potion when full hp.\n");
                 used = 0;
                 break;
@@ -648,7 +745,8 @@ void use_item(Item *item, int item_backpack_index)
         default:
             break;
         }
-        if(used) reduce_item(item_backpack_index);
+        if (used)
+            reduce_item(item_backpack_index);
         return;
     }
 }
