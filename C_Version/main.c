@@ -310,9 +310,9 @@ void execute_attack(Entity *entity1, Entity *entity2, int def_rate)
     int dmg = entity1->atk;
     dmg = (dmg * def_rate) / 100;
     int newhp = entity2->hp-dmg;
+    if(newhp < 0) newhp = 0;
     printf("%s dealt %d damage to %s (HP: %d -> %d)\n", entity1->name, dmg, entity2->name, entity2->hp, newhp);
     entity2->hp = newhp;
-    if(entity2->hp < 0) entity2->hp = 0;
     if(entity2->hp == 0) entity2->is_alive = 0;
 }
 
@@ -386,7 +386,7 @@ void Battle_Mode(Entity *player, Entity *enemy)
             }
             // 如果不是完美防禦，執行敵人的攻擊並扣除對應防禦比例
             if(def_rate != 0){
-                if(def_rate != 100) printf("You defend enemy's attack by %d\%", def_rate);
+                if(def_rate != 100) printf("You defend enemy's attack by %d percent.\n", def_rate);
                 execute_attack(enemy, player, def_rate);
             }
             else{
