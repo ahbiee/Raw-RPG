@@ -69,7 +69,6 @@ int main()
     srand((unsigned)time(NULL)); // 用當前時間初始化隨機數(確保一定程度的偽隨機)
 
     int enemy_count = rand() % 6 + 10; // randomly encounter 10~15 enemies, the player will fight them one by one
-    int total_count = enemy_count + 1; // entity[0] is player
 
     printf("====================================================\n");
     printf("Welcome to Raw RPG\n");
@@ -99,19 +98,6 @@ int main()
     // 初始化背包
     initialize_Backpack();
 
-    /*
-        以下測試背包輸出功能，可以先不管
-    */
-    backpack.gold = 100;
-    backpack.item_count = 5;
-    backpack.items[0] = item_db[7];
-    backpack.items[1] = item_db[1];
-    backpack.items[2] = item_db[2];
-    backpack.items[3] = item_db[3];
-    backpack.items[4] = item_db[4];
-    /*
-        以上測試背包輸出功能，可以先不管𓃭
-    */
     // 設定所有敵人屬性
     printf("====================================================\n");
     printf("Enemy list (10~15) for this game :\n");
@@ -129,7 +115,7 @@ int main()
     print_action_prompt();
 
     // 地圖模式主迴圈
-    while (entity[0].is_alive == 1)
+    while (entity[0].is_alive && boss.is_alive)
     {
         GameMode = MAP;
         char nextAction; // the upcoming action
@@ -174,40 +160,15 @@ int main()
             printf("You have encountered the BOSS!\n");
             GameMode = BATTLE;
             Battle_Mode(&entity[0], &boss);
+            break;
 
         default:
             break;
         }
         refresh_map();
     }
-    printf("You're DEAD.\n");
-
-    /*
-    以下code是為了測試player backpack與heap sort能夠正常使用，可以先不管
-    */
-    backpack.item_count = 5;
-    backpack.items[0] = (Item){5, "Potion", 10, 1, 1, 'P'};
-    backpack.items[1] = (Item){1, "Sword", 100, 1, 0, 'W'};
-    backpack.items[2] = (Item){3, "Key", 50, 1, 0, 'W'};
-    backpack.items[3] = (Item){4, "Shield", 80, 1, 0, 'A'};
-    backpack.items[4] = (Item){2, "Map", 5, 1, 1, 'W'};
-    backpack.gold = 0;
-
-    printf("ID sequence before heap sort: ");
-    for (int i = 0; i < backpack.item_count; i++)
-        printf("%d ", backpack.items[i].id);
-    printf("\n");
-
-    sort_backpack(); // 執行排序
-
-    printf("ID sequence after heap sort: ");
-    for (int i = 0; i < backpack.item_count; i++)
-        printf("%d ", backpack.items[i].id);
-    printf("\n");
-    /*
-    以上code是為了測試map能夠正常使用，可以先不管
-    */
-
+    if(!entity[0].is_alive) printf("You're DEAD.\n");
+    else printf("You Won!\n");
     return 0;
 }
 
@@ -231,7 +192,7 @@ void print_action_prompt()
         printf("Choose your action:\n");
         printf("A: attack\n");
         printf("D: defend\n");
-        printf("I: check and use item\n");
+        printf("E: check and use item\n");
         printf("The action you're going to make is: ");
         return;
 
@@ -278,8 +239,13 @@ void initialize_Player()
 // 初始化背包
 void initialize_Backpack()
 {
-    backpack.item_count = 0;
-    backpack.gold = 0;
+    backpack.gold = 100;
+    backpack.item_count = 5;
+    backpack.items[0] = item_db[7];
+    backpack.items[1] = item_db[1];
+    backpack.items[2] = item_db[2];
+    backpack.items[3] = item_db[3];
+    backpack.items[4] = item_db[4];
     for (int i = 0; i < 4; i++)
     {
         backpack.armor_slots[i].id = -1; // 代表該盔甲欄位沒有裝備
@@ -335,6 +301,7 @@ void execute_attack(Entity *entity1, Entity *entity2, int def_rate)
 
     dmg = (dmg * def_rate) / 100;      // 根據防禦比例調整傷害
     dmg -= entity2->damage_reduction;  // 減去受擊者的傷害減免
+    if(dmg < 0) dmg = 0;
 
     if(temp_bonus[3] > 0 && entity1->id == 0) // 如果是玩家攻擊且有使用傷害藥水
         dmg += temp_bonus[3];          // 加上額外傷害
@@ -382,7 +349,6 @@ void Battle_Mode(Entity *player, Entity *enemy)
     // 如果player速度 >= 敵人速度，player先
     int player_first = player->speed >= enemy->speed ? 1 : 0;
     char nextAction = 0; // the upcoming action
-    int backpack_index = -1;
 
     reset_temp_bonus();
 
@@ -451,16 +417,17 @@ void Battle_Mode(Entity *player, Entity *enemy)
             }
             reset_temp_bonus();
         }
-        else if (nextAction == 'I')
+        else if (nextAction == 'E')
         {
             Backpack_Mode();
         }
     }
     printf("==============Battle Finished=============\n");
-    printf("PLAYER (%s):\n\tHP: %3d/%3d    ATK: %3d     SPD: %2d\n", player->name, player->hp, player->max_hp, player->atk, player->speed);
-    printf("ENEMY (%s):\n\tHP: %3d/%3d    ATK: %3d     SPD: %2d\n", enemy->name, enemy->hp, enemy->max_hp, enemy->atk, enemy->speed);
+    printf("PLAYER (%s):\n\tHP: %3d/%3d\n", player->name, player->hp, player->max_hp);
+    printf("ENEMY (%s):\n\tHP: %3d/%3d\n", enemy->name, enemy->hp, enemy->max_hp);
     printf("==========================================\n");
-    printf("You got %d gold!\n", get_gold());
+    if(!player->is_alive) printf("You got %d gold!\n", get_gold());
+    else printf("You died when fighting %s.\n", enemy->name);
     printf("Enter -1 to continue:");
     while (1)
     {
@@ -489,7 +456,7 @@ int is_critical_hit(int crit_rate)
 // 判斷戰鬥模式的輸入是否合法
 int is_valid_action_in_battle_mode(char c)
 {
-    if (c == 'A' || c == 'D' || c == 'I')
+    if (c == 'A' || c == 'D' || c == 'E')
         return 1;
     return 0;
 }
@@ -646,6 +613,7 @@ void Backpack_Mode()
 // 輸出背包物品
 void print_backpack()
 {
+    sort_backpack();
     printf("================== Backpack ==================\n");
     printf("Gold: %d\n", backpack.gold);
     printf("Armor_slots: [%s] [%s] [%s] [%s]\n",
@@ -763,12 +731,11 @@ void use_item(Item *item, int item_backpack_index)
             break;
         case 2:                 // Bow
             temp_bonus[0] += 7; // attack +7
-            temp_bonus[1] += 5; // dodge_rate +5
             break;
         default:
             return;
         }
-        printf("Your current bonus: ATK +%d , DOD +%d, CRI +%d, HARM +%d.\n", temp_bonus[0], temp_bonus[1], temp_bonus[2], temp_bonus[3]);
+        printf("Your current bonus: ATK +%d, CRI +%d, HARM +%d.\n", temp_bonus[0], temp_bonus[2], temp_bonus[3]);
         return;
     }
 
@@ -807,7 +774,7 @@ void use_item(Item *item, int item_backpack_index)
         case 9:                  // Hm_Posion
             temp_bonus[4] += 20; // HARM +20
             printf("You used %s.\n ", item->name);
-            printf("Your current bonus: ATK +%d , DOD +%d, CRI +%d, HARM +%d.\n", temp_bonus[0], temp_bonus[1], temp_bonus[2], temp_bonus[3]);
+            printf("Your current bonus: ATK +%d, CRI +%d, HARM +%d.\n", temp_bonus[0], temp_bonus[2], temp_bonus[3]);
             break;
         default:
             break;
@@ -834,7 +801,7 @@ void Put_on_Armor(Item *armor, int item_backpack_index)
         // 該欄位沒有裝備，直接放入
         backpack.armor_slots[slot] = *armor;
         reduce_item(item_backpack_index);
-        entity[0].damage_reduction += 5; // 每件裝備增加5點傷害減免
+        entity[0].damage_reduction += 1; // 每件裝備增加1點傷害減免
         return;
     }
     else
