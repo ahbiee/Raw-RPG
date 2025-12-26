@@ -52,6 +52,7 @@ typedef struct
     int count;
     int can_be_used_in_map;
     char type; // 'W'->weapon, 'A'->armor, 'P'->posion
+    char description[16]; // item description
 } Item;
 
 typedef struct

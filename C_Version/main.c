@@ -29,17 +29,17 @@ const Entity enemy_db[] = {
 Entity boss = {"Lion King", -1, 100, 100, 20, 8, 5, 5, 5, 1, 1, 1, 'B'};
 
 const Item item_db[] = {
-    //  id, name, cost, count, can_be_used_in_map, type
-    {0, "Sword", 5, 1, 0, 'W'},
-    {1, "Axe", 10, 1, 0, 'W'},
-    {2, "Bow", 15, 1, 0, 'W'},
-    {3, "Helmet", 13, 1, 1, 'A'},     // 頭盔: map模式可穿上
-    {4, "Chestplace", 20, 1, 1, 'A'}, // 胸甲: map模式可穿上
-    {5, "Leggings", 13, 1, 1, 'A'},   // 護腿: map模式可穿上
-    {6, "Boost", 8, 1, 1, 'A'},       // 靴子: map模式可穿上
-    {7, "Hp_Potion", 10, 1, 1, 'P'},  // 生命(health point)藥水: map模式可喝
-    {8, "Pw_Potion", 10, 1, 1, 'P'},  // 力量(power)藥水: map模式可喝
-    {9, "Hm_Potion", 15, 1, 0, 'P'},  // 傷害(harm)藥水
+    //  id, name, cost, count, can_be_used_in_map, type, description
+    {0, "Sword", 5, 1, 0, 'W', "+5 ATK"},          // 劍: map模式不可使用
+    {1, "Axe", 10, 1, 0, 'W', "+10 ATK, +5 CRI"},  // 斧頭: map模式不可使用
+    {2, "Bow", 15, 1, 0, 'W', "+7 ATK"},           // 弓: map模式不可使用
+    {3, "Helmet", 13, 1, 1, 'A', "+1 DR"},     // 頭盔: map模式可穿上
+    {4, "Chestplace", 20, 1, 1, 'A', "+1 DR"}, // 胸甲: map模式可穿上
+    {5, "Leggings", 13, 1, 1, 'A', "+1 DR"},   // 護腿: map模式可穿上
+    {6, "Boost", 8, 1, 1, 'A', "+1 DR"},       // 靴子: map模式可穿上
+    {7, "Hp_Potion", 10, 1, 1, 'P', "+20 HP"},  // 生命(health point)藥水: map模式可喝
+    {8, "Pw_Potion", 10, 1, 1, 'P', "+5 ATK "},  // 力量(power)藥水: map模式可喝
+    {9, "Hm_Potion", 15, 1, 0, 'P', " +10 RDMG"},  // 傷害(harm)藥水
 
 };
 
@@ -217,7 +217,7 @@ void print_map()
 // 初始化玩家屬性
 void initialize_Player()
 {
-    entity[0].id = 0;
+    entity[0].id = 20;
     entity[0].hp = entity[0].max_hp = 100;
     entity[0].atk = 20;
     entity[0].speed = 5;
@@ -233,13 +233,8 @@ void initialize_Player()
 // 初始化背包
 void initialize_Backpack()
 {
-    backpack.gold = 100;
-    backpack.item_count = 5;
-    backpack.items[0] = item_db[7];
-    backpack.items[1] = item_db[1];
-    backpack.items[2] = item_db[2];
-    backpack.items[3] = item_db[3];
-    backpack.items[4] = item_db[4];
+    backpack.gold = 0;
+    backpack.item_count = 0;
     for (int i = 0; i < 4; i++)
     {
         backpack.armor_slots[i].id = -1; // 代表該盔甲欄位沒有裝備
@@ -480,7 +475,7 @@ void Shop_Mode()
         rand_index = rand() % 10; // 隨機選一個物品 0 ~ 9
         shop_items[i] = item_db[rand_index];
 
-        printf("(%d) %s: $%d | (物品功能介紹)\n", i, shop_items[i].name, shop_items[i].cost);
+        printf("(%d) %s: $%d | (%s)\n", i, shop_items[i].name, shop_items[i].cost, shop_items[i].description);
     } // showing what items are for sale
     int buying_index; // 玩家想買的物品index
     while (1)
@@ -490,8 +485,11 @@ void Shop_Mode()
         printf("The item you want: ");
         if (scanf("%d", &buying_index) != 1 || buying_index > 3 || buying_index < -1)
         {
-            printf("Please enter valid input\n");
+            printf("\nPlease enter valid input\n");
+            printf("----------------------------------------------------\n");
             clear_buffer();
+            print_shop_items(shop_items, selected_indices);
+            
             continue; // 回到 while(1) 重新來
         } // this loop make sure input is valid not out of
         printf("====================================================\n");
@@ -504,7 +502,7 @@ void Shop_Mode()
 
         if (selected_indices[buying_index] == 0)
         {
-            printf("This item is SOLD OUT !\n");
+            printf("\nThis item is SOLD OUT !\n");
             printf("----------------------------------------------------\n");
             print_shop_items(shop_items, selected_indices);
 
@@ -512,12 +510,13 @@ void Shop_Mode()
         } // check if this item is sold out
         else if (backpack.gold - shop_items[buying_index].cost < 0)
         {
-            printf("You're too poor to buy this.\n");
+            printf("\nYou're too poor to buy this.\n");
             printf("----------------------------------------------------\n");
             print_shop_items(shop_items, selected_indices);
             continue;
         } // check if player has enough gold
 
+        int found = 0;
         for (int i = 0; i < backpack.item_count; i++)
         {
             if (shop_items[buying_index].id == backpack.items[i].id)
@@ -525,24 +524,25 @@ void Shop_Mode()
                 backpack.items[i].count += 1;
                 backpack.gold -= shop_items[buying_index].cost;
                 selected_indices[buying_index] = 0; // mark this item is sold
-
+                found = 1;
                 break;
-            } // if the item is already in backpack, just increase count
-            else if (i == backpack.item_count - 1)
+            }
+        }
+
+        if (!found)
+        {
+            if (backpack.item_count >= MAX_ITEMS)
             {
-                if (backpack.item_count >= MAX_ITEMS){
-                    printf("Your inventory is full.\n");
-                    break;
-                }
+                printf("\nYour inventory is full.\n");
+            }
+            else
+            {
                 backpack.items[backpack.item_count] = shop_items[buying_index];
                 backpack.item_count += 1;
                 backpack.gold -= shop_items[buying_index].cost;
                 selected_indices[buying_index] = 0; // mark this item is sold
-
-                break;
             }
-
-        } // add the item to backpack
+        }
 
         print_shop_items(shop_items, selected_indices); // showing what items are for sale
     }
@@ -555,7 +555,7 @@ void print_shop_items(Item shop_items[], int selected_indices[])
     {
         if (selected_indices[i] == 1) // 1表示還沒賣掉
         {
-            printf("(%d) %s: $%d | (物品功能介紹)\n", i, shop_items[i].name, shop_items[i].cost);
+            printf("(%d) %s: $%d | (%s)\n", i, shop_items[i].name, shop_items[i].cost, shop_items[i].description);
         }
         else
             printf("(%d) SOLD OUT !\n", i);
@@ -621,7 +621,7 @@ void print_backpack()
     for (int i = 0; i < backpack.item_count; i++)
     {
         if (backpack.items[i].count > 0)
-            printf("(%d) %s ×%d\n", i, backpack.items[i].name, backpack.items[i].count);
+            printf("(%d) %s ×%d  (%s)\n", i, backpack.items[i].name, backpack.items[i].count, backpack.items[i].description);
         else
             break;
     }
@@ -631,22 +631,22 @@ void print_backpack()
     ----------------- Backpack -----------------
     Gold: 100
     Armor_slots: [] [] [] []
-    (0) Items_name ×2
-    (1) Items_name ×1
-    (2) Items_name ×2
-    (3) Items_name ×2
-    (4) Items_name ×2
-    (5) Items_name ×1
-    (6) Items_name ×2
-    (7) Items_name ×2
-    (8) Items_name ×2
-    (9) Items_name ×1
-    (10) Items_name ×2
-    (11) Items_name ×2
-    (12) Items_name ×2
-    (13) Items_name ×1
-    (14) Items_name ×2
-    (15) Items_name ×2
+    (0) Items_name ×2  (description)
+    (1) Items_name ×1  (description)
+    (2) Items_name ×2  (description)
+    (3) Items_name ×2  (description)
+    (4) Items_name ×2  (description)
+    (5) Items_name ×1  (description)
+    (6) Items_name ×2  (description)
+    (7) Items_name ×2  (description)
+    (8) Items_name ×2  (description)
+    (9) Items_name ×1  (description)
+    (10) Items_name ×2  (description)
+    (11) Items_name ×2  (description)
+    (12) Items_name ×2  (description)
+    (13) Items_name ×1  (description)
+    (14) Items_name ×2  (description)
+    (15) Items_name ×2  (description)
     */
 }
 
@@ -889,13 +889,16 @@ void initialize_map(int enemies_count)
 
     // 生成商店'$'
     int shop_x, shop_y;
-    do
-    {
-        shop_x = rand() % (MAP_WIDTH - 2) + 1;
-        shop_y = rand() % (MAP_HEIGHT - 2) + 1;
-    } while (map[shop_y][shop_x] != '.'); // 確保不重疊
+    for(int j=0;j<5;j++){
+        do
+        {
+            shop_x = rand() % (MAP_WIDTH - 2) + 1;
+            shop_y = rand() % (MAP_HEIGHT - 2) + 1;
+        } while (map[shop_y][shop_x] != '.'); // 確保不重疊
 
-    map[shop_y][shop_x] = '$';
+        map[shop_y][shop_x] = '$';
+    }
+    
 }
 
 // 玩家在地圖模式的行動
