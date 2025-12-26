@@ -18,16 +18,15 @@ Author:
 #include "struct.h"
 
 const Entity enemy_db[] = {
-    // name, id, hp, maxhp, atk, speed, dodge_rate, crit_rate, is_alive, pos_x, pos_y, type
-    {"", -1, -1, -1, -1, -1, -1, -1, -1, 1, -1, 'E'},     // type 0 是 placeholder, 不應該存取到這
-    {"Slime", -1, 20, 20, 3, 4, 0, 0, 1, -1, -1, 'E'},    // type 1 是 Slime
-    {"Skeleton", -1, 15, 15, 8, 7, 5, 5, 1, -1, -1, 'E'}, // type 2 是 Skeleton
-    {"Zombie", -1, 40, 40, 5, 2, 1, 1, 1, -1, -1, 'E'},   // type 3 是 Zombie
-    {"Goblin", -1, 30, 30, 6, 6, 3, 3, 1, -1, -1, 'E'},   // type 4 是 Goblin
-    {"Ghost", -1, 5, 5, 15, 10, 30, 10, 1, -1, -1, 'E'},  // type 5 是 Ghost
-
+    // name, id, hp, maxhp, atk, speed, dodge_rate, crit_rate, damage_reduction, is_alive, pos_x, pos_y, type
+    {"", -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 'E'},     // type 0 是 placeholder, 不應該存取到這
+    {"Slime", -1, 20, 20, 3, 4, 0, 0, 0, 1, -1, -1, 'E'},    // type 1 是 Slime
+    {"Skeleton", -1, 15, 15, 8, 7, 5, 5, 0, 1, -1, -1, 'E'}, // type 2 是 Skeleton
+    {"Zombie", -1, 40, 40, 5, 2, 1, 1, 0, 1, -1, -1, 'E'},   // type 3 是 Zombie
+    {"Goblin", -1, 30, 30, 6, 6, 3, 3, 0, 1, -1, -1, 'E'},   // type 4 是 Goblin
+    {"Ghost", -1, 5, 5, 15, 10, 30, 10, 0, 1, -1, -1, 'E'},  // type 5 是 Ghost
 };
-const Entity boss = {"Lion King", -1, 100, 100, 20, 8, 5, 5, 1, 1, 1, 'B'};
+Entity boss = {"Lion King", -1, 100, 100, 20, 8, 5, 5, 5, 1, 1, 1, 'B'};
 
 const Item item_db[] = {
     //  id, name, cost, count, can_be_used_in_map, type
@@ -56,12 +55,11 @@ enum
 {
     MAP,
     BATTLE,
-    SHOP,
-    BACKPACK
+    SHOP
 } GameMode;
 
 // 暫時的屬性加成數值(使用武器時會用到)
-int temp_bonus[5] = {0, 0, 0, 0, 0}; // attack, defense, dodge_rate, crit_rate, Harm
+int temp_bonus[4] = {0, 0, 0, 0}; // attack, dodge_rate, crit_rate, Real_Harm
 
 // map
 char map[MAP_HEIGHT][MAP_WIDTH];
@@ -149,7 +147,7 @@ int main()
         case 'M':
             // 進入戰鬥模式
             GameMode = BATTLE;
-            int ind;
+            int ind = -1;
             for (int i = 1; i < MAX_ENTITIES; i++)
             {
                 if (entity[i].pos_x == entity[0].pos_x && entity[i].pos_y == entity[0].pos_y)
@@ -158,7 +156,11 @@ int main()
                     break;
                 }
             } // confirm which enemy to fight
-            Battle_Mode(&entity[0], &entity[ind]);
+
+            if (ind != -1)
+            {
+                Battle_Mode(&entity[0], &entity[ind]);
+            }
             break;
 
         case '$':
@@ -236,10 +238,6 @@ void print_action_prompt()
     case SHOP:
         return;
 
-    case BACKPACK:
-        printf("Enter an item index to use (enter anything, -1 to exit): ");
-        return;
-
     default:
         return;
     }
@@ -269,7 +267,8 @@ void initialize_Player()
     entity[0].atk = 20;
     entity[0].speed = 5;
     entity[0].dodge_rate = 10;
-    entity[0].crit_rate = 5;
+    entity[0].crit_rate = 10;
+    entity[0].damage_reduction = 0;
     entity[0].is_alive = 1;
     entity[0].type = 'P';
     entity[0].pos_x = MAP_WIDTH - 2;
@@ -301,6 +300,7 @@ void setupEnemy(int i)
     entity[i].speed = enemy_db[type].speed;
     entity[i].dodge_rate = enemy_db[type].dodge_rate;
     entity[i].crit_rate = enemy_db[type].crit_rate;
+    entity[i].damage_reduction = enemy_db[type].damage_reduction;
     entity[i].id = i;
     entity[i].is_alive = 1;
 
@@ -308,14 +308,38 @@ void setupEnemy(int i)
            i, entity[i].name, entity[i].hp, entity[i].atk, entity[i].speed);
 }
 
+
+
 // 處理攻擊時的過程
 void execute_attack(Entity *entity1, Entity *entity2, int def_rate)
 {
+    /*
+        entity1 attack entity2
+    */
     if (!entity1->is_alive || !entity2->is_alive)
         return; // if one of the entity is not alive anymore, don't do anything
 
     int dmg = entity1->atk;
-    dmg = (dmg * def_rate) / 100;
+    int crit = entity1->crit_rate;
+    if(entity1->id == 0)
+    {
+        dmg += temp_bonus[0]; // 加上 bonus ATK
+        crit += temp_bonus[2]; // 加上 bonus CRIT_RATE
+    }
+
+    if(is_critical_hit(crit))
+    {
+        dmg = dmg * 2; // 暴擊傷害為雙倍
+        printf("%s dealt a CRITICAL HIT to %s!\n", entity1->name, entity2->name);
+    }
+
+    dmg = (dmg * def_rate) / 100;      // 根據防禦比例調整傷害
+    dmg -= entity2->damage_reduction;  // 減去受擊者的傷害減免
+
+    if(temp_bonus[3] > 0 && entity1->id == 0) // 如果是玩家攻擊且有使用傷害藥水
+        dmg += temp_bonus[3];          // 加上額外傷害
+        
+
     int newhp = entity2->hp - dmg;
     if (newhp < 0)
         newhp = 0;
@@ -340,6 +364,15 @@ int roll_defend()
     return 100; // 格檔失敗 (受傷 100%)
 }
 
+// 歸0暫時屬性加成數值
+void reset_temp_bonus()
+{
+    temp_bonus[0] = 0; // attack
+    temp_bonus[1] = 0; // dodge_rate
+    temp_bonus[2] = 0; // crit_rate
+    temp_bonus[3] = 0; // Real_Harm
+}
+
 // 進入戰鬥模式
 void Battle_Mode(Entity *player, Entity *enemy)
 {
@@ -350,6 +383,8 @@ void Battle_Mode(Entity *player, Entity *enemy)
     int player_first = player->speed >= enemy->speed ? 1 : 0;
     char nextAction = 0; // the upcoming action
     int backpack_index = -1;
+
+    reset_temp_bonus();
 
     while (player->is_alive && enemy->is_alive)
     {
@@ -381,6 +416,7 @@ void Battle_Mode(Entity *player, Entity *enemy)
                 execute_attack(enemy, player, 100);
                 execute_attack(player, enemy, 100);
             }
+            reset_temp_bonus();
         }
         else if (nextAction == 'D')
         {
@@ -413,33 +449,18 @@ void Battle_Mode(Entity *player, Entity *enemy)
                 printf("You got no damage and healed 1.2* of your health. (HP: %d -> %d)\n", player->hp, (player->hp * 1.2 > player->max_hp ? player->max_hp : (int)(player->hp * 1.2)));
                 player->hp = (player->hp * 1.2 > player->max_hp ? player->max_hp : player->hp * 1.2);
             }
+            reset_temp_bonus();
         }
         else if (nextAction == 'I')
         {
-            while (1)
-            {
-                print_backpack();
-                printf("Enter an item index to use (enter anything, -1 to exit): ");
-                scanf("%d", &backpack_index);
-                if (backpack_index < 0)
-                {
-                    printf("Leave your backpack.\n");
-                    break;
-                }
-                else if (backpack_index >= backpack.item_count)
-                    printf("There are no items in this backpack slot.\n");
-                else
-                {
-                    use_item(&backpack.items[backpack_index], backpack_index);
-                    break;
-                }
-            }
+            Backpack_Mode();
         }
     }
     printf("==============Battle Finished=============\n");
     printf("PLAYER (%s):\n\tHP: %3d/%3d    ATK: %3d     SPD: %2d\n", player->name, player->hp, player->max_hp, player->atk, player->speed);
     printf("ENEMY (%s):\n\tHP: %3d/%3d    ATK: %3d     SPD: %2d\n", enemy->name, enemy->hp, enemy->max_hp, enemy->atk, enemy->speed);
     printf("==========================================\n");
+    printf("You got %d gold!\n", get_gold());
     printf("Enter -1 to continue:");
     while (1)
     {
@@ -455,12 +476,33 @@ void Battle_Mode(Entity *player, Entity *enemy)
     }
 }
 
+// 判斷是否爆擊
+int is_critical_hit(int crit_rate)
+{
+    int roll = rand() % 100;
+    if (roll < crit_rate)
+        return 1;
+
+    return 0;
+}
+
+// 判斷戰鬥模式的輸入是否合法
 int is_valid_action_in_battle_mode(char c)
 {
     if (c == 'A' || c == 'D' || c == 'I')
         return 1;
     return 0;
 }
+
+// 隨機獲得gold
+int get_gold()
+{
+    int gold = rand() % 26 + 10; // 獲得10~35的gold
+    backpack.gold += gold;
+    return gold;
+}
+
+
 
 // 進入商店模式
 void Shop_Mode()
@@ -540,6 +582,7 @@ void Shop_Mode()
         print_shop_items(shop_items, selected_indices); // showing what items are for sale
     }
 }
+
 // 輸出商店物品
 void print_shop_items(Item shop_items[], int selected_indices[])
 {
@@ -569,7 +612,7 @@ void Backpack_Mode()
     while (1)
     {
         print_backpack();
-        print_action_prompt();
+        printf("Enter an item index to use (enter anything, -1 to exit): ");
 
         if (scanf("%d", &backpack_index) != 1)
         {
@@ -588,7 +631,8 @@ void Backpack_Mode()
         {
             printf("There are no items in this backpack slot.\n");
         }
-        else if (backpack.items[backpack_index].can_be_used_in_map == 1)
+        else if ((GameMode == MAP && backpack.items[backpack_index].can_be_used_in_map == 1) || 
+                  GameMode == BATTLE)
         {
             use_item(&backpack.items[backpack_index], backpack_index);
         }
@@ -704,6 +748,10 @@ void use_item(Item *item, int item_backpack_index)
     if (item->type == 'W')
     {
         printf("You use %s to attack.\n", item->name);
+
+        temp_bonus[0] = 0; // reset attack bonus
+        temp_bonus[2] = 0; // reset crit_rate bonus
+
         switch (item->id)
         {
         case 0:                 // Sword
@@ -711,14 +759,16 @@ void use_item(Item *item, int item_backpack_index)
             break;
         case 1:                  // Axe
             temp_bonus[0] += 10; // attack +10
-            temp_bonus[3] += 5;  // crit_rate +5
+            temp_bonus[2] += 15;  // crit_rate +15
             break;
         case 2:                 // Bow
             temp_bonus[0] += 7; // attack +7
+            temp_bonus[1] += 5; // dodge_rate +5
             break;
         default:
-            break;
+            return;
         }
+        printf("Your current bonus: ATK +%d , DOD +%d, CRI +%d, HARM +%d.\n", temp_bonus[0], temp_bonus[1], temp_bonus[2], temp_bonus[3]);
         return;
     }
 
@@ -727,7 +777,7 @@ void use_item(Item *item, int item_backpack_index)
     {
         printf("You put on %s.\n", item->name);
         Put_on_Armor(item, item_backpack_index);
-        printf("Your current hp: %d.\n", entity[0].hp);
+        printf("Your current Damage Reduction: %d.\n", entity[0].damage_reduction);
         return;
     }
 
@@ -744,10 +794,10 @@ void use_item(Item *item, int item_backpack_index)
                 used = 0;
                 break;
             }
-            entity[0].hp += 30;
+            entity[0].hp += 20;
             if (entity[0].hp > entity[0].max_hp)
                 entity[0].hp = entity[0].max_hp;
-            printf("You used %s. HP +10.\n", item->name);
+            printf("You used %s. HP +20.\n", item->name);
             printf("Current HP: %d/%d\n", entity[0].hp, entity[0].max_hp);
             break;
         case 8:                       // Pw_Posion
@@ -756,7 +806,8 @@ void use_item(Item *item, int item_backpack_index)
             break;
         case 9:                  // Hm_Posion
             temp_bonus[4] += 20; // HARM +20
-            printf("You used %s.\n", item->name);
+            printf("You used %s.\n ", item->name);
+            printf("Your current bonus: ATK +%d , DOD +%d, CRI +%d, HARM +%d.\n", temp_bonus[0], temp_bonus[1], temp_bonus[2], temp_bonus[3]);
             break;
         default:
             break;
@@ -783,6 +834,7 @@ void Put_on_Armor(Item *armor, int item_backpack_index)
         // 該欄位沒有裝備，直接放入
         backpack.armor_slots[slot] = *armor;
         reduce_item(item_backpack_index);
+        entity[0].damage_reduction += 5; // 每件裝備增加5點傷害減免
         return;
     }
     else
@@ -795,6 +847,8 @@ void Put_on_Armor(Item *armor, int item_backpack_index)
         return;
     }
 }
+
+
 
 // Max Heap, sort by id
 void heapify_item(Item arr[], int size, int i)
@@ -909,7 +963,6 @@ void action_in_map(char nextAction, Entity *player)
             player->pos_x += 1;
         break;
     case 'E':
-        GameMode = BACKPACK;
         Backpack_Mode(); // 進入背包模式
         break;
     default:

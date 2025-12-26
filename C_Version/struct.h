@@ -29,6 +29,7 @@ typedef struct
     int speed;
     int dodge_rate;
     int crit_rate;
+    int damage_reduction;
     int is_alive;
     int pos_x;
     int pos_y;
@@ -73,11 +74,12 @@ void initialize_map(int enemies_count); // 初始化地圖
 void initialize_Player();               // 初始化玩家屬性
 void initialize_Backpack();             // 初始化背包
 void setupEnemy(int i);                 // 設定敵人屬性
+void reset_temp_bonus();              // 重置暫時屬性加成
 
 void print_map(); // 印出地圖
-void refresh_map();
+void refresh_map(); // 更新+印出地圖
 void action_in_map(char nextAction, Entity *player); // 玩家在地圖模式的行動
-// 更新+印出地圖
+
 void print_action_prompt();                              // 印出玩家行動提示
 void print_backpack();                                   // 輸出所有背包物品
 void Backpack_Mode();                                    // 進入背包模式
@@ -87,7 +89,9 @@ void use_item(Item *item, int item_backpack_index);      // 使用物品
 void Battle_Mode(Entity *player, Entity *enemy);                     // 進入對戰模式
 void execute_attack(Entity *entity1, Entity *entity2, int def_rate); // 處理攻擊時的過程
 int is_valid_action_in_battle_mode(char c);
+int is_critical_hit(int crit_rate); // 判斷是否暴擊
 int roll_defend(); // 骰防禦比例
+int get_gold(); // 隨機獲得gold
 
 void Shop_Mode();                                                 // 進入商店模式
 void print_shop_items(Item shop_items[], int selected_indices[]); // 輸出商店物品
