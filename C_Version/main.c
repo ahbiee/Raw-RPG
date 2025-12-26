@@ -20,13 +20,13 @@ Author:
 const Entity enemy_db[] = {
     // name, id, hp, maxhp, atk, speed, dodge_rate, crit_rate, damage_reduction, is_alive, pos_x, pos_y, type
     {"", -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 'E'},     // type 0 是 placeholder, 不應該存取到這
-    {"Slime", -1, 20, 20, 3, 4, 0, 0, 0, 1, -1, -1, 'E'},    // type 1 是 Slime
-    {"Skeleton", -1, 15, 15, 8, 7, 5, 5, 0, 1, -1, -1, 'E'}, // type 2 是 Skeleton
-    {"Zombie", -1, 40, 40, 5, 2, 1, 1, 0, 1, -1, -1, 'E'},   // type 3 是 Zombie
-    {"Goblin", -1, 30, 30, 6, 6, 3, 3, 0, 1, -1, -1, 'E'},   // type 4 是 Goblin
+    {"Slime", -1, 20, 20, 3, 4, 0, 5, 1, 1, -1, -1, 'E'},    // type 1 是 Slime
+    {"Skeleton", -1, 15, 15, 8, 7, 15, 5, 0, 1, -1, -1, 'E'}, // type 2 是 Skeleton
+    {"Zombie", -1, 40, 40, 5, 2, 1, 20, 2, 1, -1, -1, 'E'},   // type 3 是 Zombie
+    {"Goblin", -1, 30, 30, 6, 6, 3, 15, 1, 1, -1, -1, 'E'},   // type 4 是 Goblin
     {"Ghost", -1, 5, 5, 15, 10, 30, 10, 0, 1, -1, -1, 'E'},  // type 5 是 Ghost
 };
-Entity boss = {"Lion King", -1, 100, 100, 20, 8, 5, 5, 5, 1, 1, 1, 'B'};
+Entity boss = {"Lion King", -1, 100, 100, 20, 8, 5, 10, 5, 1, 1, 1, 'B'};
 
 const Item item_db[] = {
     //  id, name, cost, count, can_be_used_in_map, type, description
@@ -37,9 +37,9 @@ const Item item_db[] = {
     {4, "Chestplace", 20, 1, 1, 'A', "+1 DR"}, // 胸甲: map模式可穿上
     {5, "Leggings", 13, 1, 1, 'A', "+1 DR"},   // 護腿: map模式可穿上
     {6, "Boost", 8, 1, 1, 'A', "+1 DR"},       // 靴子: map模式可穿上
-    {7, "Hp_Potion", 10, 1, 1, 'P', "+20 HP"},  // 生命(health point)藥水: map模式可喝
-    {8, "Pw_Potion", 10, 1, 1, 'P', "+5 ATK "},  // 力量(power)藥水: map模式可喝
-    {9, "Hm_Potion", 15, 1, 0, 'P', " +10 RDMG"},  // 傷害(harm)藥水
+    {7, "Hp_Potion", 20, 1, 1, 'P', "+20 HP"},  // 生命(health point)藥水: map模式可喝
+    {8, "Pw_Potion", 20, 1, 1, 'P', "+5 ATK "},  // 力量(power)藥水: map模式可喝
+    {9, "Hm_Potion", 20, 1, 0, 'P', " +10 RDMG"},  // 傷害(harm)藥水
 
 };
 
