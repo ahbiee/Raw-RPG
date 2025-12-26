@@ -101,4 +101,5 @@ void heapify_item(Item arr[], int size, int i);
 void Battle_Mode(Entity *player, Entity *enemy); // 進入對戰模式
 void Shop_Mode();                                // 進入商店模式
 void Backpack_Mode();                            // 進入背包模式
+void clear_buffer();
 #endif

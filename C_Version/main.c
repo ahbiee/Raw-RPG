@@ -83,9 +83,7 @@ int main()
         // case B: user's input is more thant 19 characters, we need to clear the input buffer
         else
         {
-            int c;
-            while ((c = getchar()) != '\n' && c != EOF)
-                ; // clear buffer
+            clear_buffer();
             // we don't need to manually replace the last character to '\n', it's automaticly done by fgets
         }
     }
@@ -112,20 +110,16 @@ int main()
 
     // 印出地圖
     print_map();
-    print_action_prompt();
 
     // 地圖模式主迴圈
     while (entity[0].is_alive && boss.is_alive)
     {
         GameMode = MAP;
+
+        print_action_prompt();
         char nextAction; // the upcoming action
 
-        scanf("%c", &nextAction);
-        if (nextAction == '\n')
-        {
-            print_action_prompt();
-            continue; // avoid enter key input
-        }
+        scanf(" %c", &nextAction);
         action_in_map(nextAction, &entity[0]); // update player position
 
         switch (map[entity[0].pos_y][entity[0].pos_x])
@@ -249,6 +243,8 @@ void initialize_Backpack()
     for (int i = 0; i < 4; i++)
     {
         backpack.armor_slots[i].id = -1; // 代表該盔甲欄位沒有裝備
+        backpack.armor_slots[i].count = 0;
+        backpack.armor_slots[i].name[0] = '\0';
     }
 }
 
@@ -426,8 +422,8 @@ void Battle_Mode(Entity *player, Entity *enemy)
     printf("PLAYER (%s):\n\tHP: %3d/%3d\n", player->name, player->hp, player->max_hp);
     printf("ENEMY (%s):\n\tHP: %3d/%3d\n", enemy->name, enemy->hp, enemy->max_hp);
     printf("==========================================\n");
-    if(!player->is_alive) printf("You got %d gold!\n", get_gold());
-    else printf("You died when fighting %s.\n", enemy->name);
+    if (player->is_alive && !enemy->is_alive) printf("Victory! You got %d gold!\n", get_gold());
+    else printf("You were defeated by %s...\n", enemy->name);
     printf("Enter -1 to continue:");
     while (1)
     {
@@ -435,8 +431,7 @@ void Battle_Mode(Entity *player, Entity *enemy)
         if (scanf("%d", &exit_battle) != 1 || exit_battle != -1)
         {
             printf("Please enter valid input\n");
-            while (getchar() != '\n')
-                ;     // 清掉 buffer 裡的垃圾字元
+            clear_buffer();
             continue; // 回到 while(1) 重新來
         }
         break;
@@ -482,7 +477,7 @@ void Shop_Mode()
     for (int i = 0; i < 4; i++)
     {
         int rand_index;
-        rand_index = rand() % 9; // 隨機選一個物品
+        rand_index = rand() % 10; // 隨機選一個物品 0 ~ 9
         shop_items[i] = item_db[rand_index];
 
         printf("(%d) %s: $%d | (物品功能介紹)\n", i, shop_items[i].name, shop_items[i].cost);
@@ -496,8 +491,7 @@ void Shop_Mode()
         if (scanf("%d", &buying_index) != 1 || buying_index > 3 || buying_index < -1)
         {
             printf("Please enter valid input\n");
-            while (getchar() != '\n')
-                ;     // 清掉 buffer 裡的垃圾字元
+            clear_buffer();
             continue; // 回到 while(1) 重新來
         } // this loop make sure input is valid not out of
         printf("====================================================\n");
@@ -536,6 +530,10 @@ void Shop_Mode()
             } // if the item is already in backpack, just increase count
             else if (i == backpack.item_count - 1)
             {
+                if (backpack.item_count >= MAX_ITEMS){
+                    printf("Your inventory is full.\n");
+                    break;
+                }
                 backpack.items[backpack.item_count] = shop_items[buying_index];
                 backpack.item_count += 1;
                 backpack.gold -= shop_items[buying_index].cost;
@@ -584,8 +582,7 @@ void Backpack_Mode()
         if (scanf("%d", &backpack_index) != 1)
         {
             printf("Invalid input. Please enter a number.\n");
-            while (getchar() != '\n')
-                ;     // 清掉 buffer 裡的垃圾字元
+            clear_buffer();
             continue; // 回到 while(1) 重新來
         }
 
@@ -706,7 +703,7 @@ void use_item(Item *item, int item_backpack_index)
             根據物品效果更新玩家狀態 or 穿上裝備
 
     TODO:
-        1. 判斷物品類型 (例如: Hp_Posion, Pw_Posion, Helmet, 等等)
+        1. 判斷物品類型 (例如: Hp_Potion, Pw_Potion, Helmet, 等等)
         2. 根據物品效果更新玩家狀態 or 穿上裝備
         3. 移除已使用的物品或更新數量
 
@@ -754,7 +751,7 @@ void use_item(Item *item, int item_backpack_index)
         int used = 1;
         switch (item->id)
         {
-        case 7: // Hp_Posion
+        case 7: // Hp_Potion
             if (entity[0].hp == entity[0].max_hp)
             {
                 printf("You cannot use heal potion when full hp.\n");
@@ -767,12 +764,12 @@ void use_item(Item *item, int item_backpack_index)
             printf("You used %s. HP +20.\n", item->name);
             printf("Current HP: %d/%d\n", entity[0].hp, entity[0].max_hp);
             break;
-        case 8:                       // Pw_Posion
+        case 8:                       // Pw_Potion
             entity[0].crit_rate += 5; // crit_rate +5
             printf("You used %s. CRI +5.\n", item->name);
             break;
-        case 9:                  // Hm_Posion
-            temp_bonus[4] += 20; // HARM +20
+        case 9:                  // Hm_Potion
+            temp_bonus[3] += 20; // HARM +20
             printf("You used %s.\n ", item->name);
             printf("Your current bonus: ATK +%d, CRI +%d, HARM +%d.\n", temp_bonus[0], temp_bonus[2], temp_bonus[3]);
             break;
@@ -940,19 +937,34 @@ void action_in_map(char nextAction, Entity *player)
 // 更新+印出地圖
 void refresh_map()
 {
-    // Reset the inner map with '.', keep the walls
+    // 1. 先將地圖內部的所有非靜態物件（P, M）清空為空地 '.'
+    // 保留牆壁 '#'、商店 '$' 與 Boss 'B' (若 Boss 是固定的)
     for (int y = 1; y < MAP_HEIGHT - 1; y++)
     {
         for (int x = 1; x < MAP_WIDTH - 1; x++)
         {
-            if (map[y][x] == '$' || map[y][x] == 'B' || map[y][x] == 'M')
-                continue; // keep the wall
-            map[y][x] = '.';
+            if (map[y][x] == 'P' || map[y][x] == 'M') 
+                map[y][x] = '.';
         }
     }
-    map[entity[0].pos_y][entity[0].pos_x] = 'P'; // player
+
+    // 2. 重新繪製所有活著的敵人
+    for (int i = 1; i < MAX_ENTITIES; i++)
+    {
+        if (entity[i].is_alive && entity[i].type == 'M')
+            map[entity[i].pos_y][entity[i].pos_x] = 'M';
+    }
+
+    // 3. 最後畫上玩家，確保玩家圖層在最上方
+    if (entity[0].is_alive)
+        map[entity[0].pos_y][entity[0].pos_x] = 'P';
 
     print_map();
+}
+
+void clear_buffer(){
+    int c = 0;
+    while((c = getchar()) != '\n' && c != EOF);
 }
 
 // ---------------------------------------------------------------------------------------------------------------------------
