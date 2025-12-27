@@ -31,14 +31,14 @@ Entity boss = {"Lion King", -1, 100, 100, 20, 8, 5, 10, 5, 1, 1, 1, 'B'};
 const Item item_db[] = {
     //  id, name, cost, count, can_be_used_in_map, type, description
     {0, "Sword", 5, 1, 0, 'W', "+5 ATK"},          // 劍: map模式不可使用
-    {1, "Axe", 10, 1, 0, 'W', "+10 ATK, +5 CRI"},  // 斧頭: map模式不可使用
+    {1, "Axe", 10, 1, 0, 'W', "+10 ATK, +15 CRI"},  // 斧頭: map模式不可使用
     {2, "Bow", 15, 1, 0, 'W', "+7 ATK"},           // 弓: map模式不可使用
     {3, "Helmet", 13, 1, 1, 'A', "+1 DR"},     // 頭盔: map模式可穿上
     {4, "Chestplace", 20, 1, 1, 'A', "+1 DR"}, // 胸甲: map模式可穿上
     {5, "Leggings", 13, 1, 1, 'A', "+1 DR"},   // 護腿: map模式可穿上
     {6, "Boost", 8, 1, 1, 'A', "+1 DR"},       // 靴子: map模式可穿上
     {7, "Hp_Potion", 20, 1, 1, 'P', "+20 HP"},  // 生命(health point)藥水: map模式可喝
-    {8, "Pw_Potion", 20, 1, 1, 'P', "+5 ATK "},  // 力量(power)藥水: map模式可喝
+    {8, "Pw_Potion", 20, 1, 1, 'P', "+5 CRI "},  // 力量(power)藥水: map模式可喝
     {9, "Hm_Potion", 20, 1, 0, 'P', " +10 RDMG"},  // 傷害(harm)藥水
 
 };
