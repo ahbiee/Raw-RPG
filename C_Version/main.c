@@ -804,11 +804,7 @@ void Put_on_Armor(Item *armor, int item_backpack_index)
     }
     else
     {
-        // 該欄位已有裝備，先卸下再放入
-        Item old_armor = backpack.armor_slots[slot];
-        backpack.armor_slots[slot] = *armor;
-        // 將舊裝備放回背包
-        backpack.items[item_backpack_index] = old_armor;
+        // 該欄位已有裝備，不做任何動作，因為裝備一定相同
         return;
     }
 }
