@@ -56,6 +56,9 @@ gcc main.c -o RawRPG
 * `main.c`: 遊戲主迴圈、Heap Sort 演算法及戰鬥邏輯實作。
 * `rpg_simple.asm`: 針對 MIPS 指令集優化的精簡版遊戲邏輯。
 
+## 🖼️ 流程圖 Flow Chart
+![FlowChart](/FlowChart.jpg)
+
 ## 👥 開發小組 Developers
 
 * **hermeswangggg**
